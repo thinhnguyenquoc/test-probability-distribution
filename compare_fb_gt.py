@@ -51,7 +51,7 @@ def bin_distance(d):
     if d < 1:
         return '(0,1)'
     elif 1 <= d < 10:
-        return '(1, 10)'
+        return '[1, 10)'
     elif 10 <= d < 100:
         return '[10, 100)'
     else:
@@ -72,7 +72,7 @@ comparison = pd.merge(fb[['district_id', 'category', 'p_fb']],
                       how='outer').fillna(0)
 
 # Khớp lại order category
-cat_order = ['(0,1)', '(1, 10)', '[10, 100)', '100+']
+cat_order = ['(0,1)', '[1, 10)', '[10, 100)', '100+']
 comparison['cat_order'] = comparison['category'].map({k: i for i, k in enumerate(cat_order)})
 comparison = comparison.sort_values(by=['district_id', 'cat_order']).drop(columns=['cat_order'])
 
@@ -83,15 +83,17 @@ print("\n--- Đánh giá độ phù hợp (Sai số trung bình tuyệt đối -
 results_md = "# Kết quả so sánh Facebook Mobility với Dữ liệu tính toán nội bộ\n\n"
 results_md += "Chúng ta phân dải khoảng cách ra thành 4 nhóm để đối chiếu theo thước đo của FB:\n"
 results_md += "- **(0,1)**: Không di chuyển xa / quanh quẩn dưới 1km.\n"
-results_md += "- **(1, 10)**: Di chuyển từ 1km đến dưới 10km.\n"
+results_md += "- **[1, 10)**: Di chuyển từ 1km đến dưới 10km.\n"
 results_md += "- **[10, 100)**: Di chuyển từ 10km đến dưới 100km.\n"
 results_md += "- **100+**: Di chuyển liên vùng từ 100km trở lên.\n\n"
 
-results_md += "### Độ đo Sai số trung bình tuyệt đối (MAE)\n"
+results_md += "### Độ đo Trọng tâm: Tuyệt đối (MAE), Trung bình bình phương (MRS/RMSE) và Mức khớp (CPC)\n"
 for d in districts:
     dist_data = comparison[comparison['district_id'] == d]
     mae = np.mean(np.abs(dist_data['p_fb'] - dist_data['p_gt']))
-    msg = f"- {d}: **{mae:.4f}**"
+    mrs = np.sqrt(np.mean((dist_data['p_fb'] - dist_data['p_gt'])**2))
+    cpc = np.sum(np.minimum(dist_data['p_fb'], dist_data['p_gt']))
+    msg = f"- {d}: MAE = **{mae:.4f}** | MRS (RMSE) = **{mrs:.4f}** | Khớp CPC = **{cpc*100:.2f}%**"
     print(msg)
     results_md += msg + "\n"
 
