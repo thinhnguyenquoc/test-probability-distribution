@@ -19,7 +19,7 @@ Tài liệu này tổng hợp lại tuần tự toàn bộ các bước thao tá
 - **Tài liệu tham chiếu:** `cac_cong_thuc_phan_phoi.md`
 - **Mô tả thao tác:**
   1. Tập hợp các hàm phân phối để đối chiếu độ bao phủ: Truncated Lévy Flight (TLF), Exponential (Mũ), Lognormal, Gamma, và Shifted Power-Law.
-  2. Đo lường xếp hạng các mô hình bằng chỉ số R2, AIC, BIC, KS-Test, Likelihood Ratio.
+  2. Đo lường xếp hạng các mô hình bằng chỉ số R2, AIC, BIC, KS-Test, Likelihood Ratio, ưu tiên chọn mô hình nào có chỉ số CPC
   3. Lưu kết quả đánh giá số liệu diện rộng cho từng zone vào file `zone_distribution_metrics.csv`.
   4. Trích xuất thông tin luận điểm mô hình phù hợp nhất với dữ liệu lưu lượng đỉnh cục bộ ở vùng cụm nội cư dân.
   5. Xuất kết quả thống kê thành biểu đồ tròn/cột phân loại mô hình `zone_distribution_metrics.png`.
