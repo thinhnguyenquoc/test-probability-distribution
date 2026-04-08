@@ -21,7 +21,14 @@ Dự án được triển khai để giải quyết những câu hỏi trên.
 ---
 
 ## 3. Quá trình Vận hành và Phương pháp Kỹ thuật (Methodology)
-Tập hợp tọa độ và điểm đếm từ 303 Subzones trải khắp 5 Quận trung tâm (Districts). Toàn bộ được quy hoạch chéo về hệ Mét tiêu chuẩn EPSG:3414 (Khoảng cách Euclid vuông tuyến). Thuật toán tối ưu *Levenberg-Marquardt* thực thi việc nội suy (Curve fitting) đối đầu giữa:
+
+### 3.1. Dữ liệu Cơ sở (Ground Truth Data) và Phương pháp Thống kê theo tuần
+Nghiên cứu sử dụng khung lượng truy vết di chuyển cá nhân đo đạc thực tế (Ground Truth Data) kết nối đa chiều giữa các phân khu lãnh thổ. Thay vì thực thi trên dữ liệu di chuyển theo từng ngày dễ bị nhiễu động bởi sự kiện ngẫu nhiên hoặc thời tiết (noise/anomalies), **toàn bộ lưu lượng chuyến đi (Trip Counts) được thống kê và cộng gộp theo Chu kỳ Tuần (Weekly Aggregated Statistics)**. Việc lấy mẫu không gian dựa trên lưu lượng tuần tạo ra sự ổn định (smoothing) tuyệt đối cho cấu trúc hành vi của người dân, bộc lộ rõ hình thái di chuyển tất yếu và triệt tiêu tính hỗn loạn.
+
+Tính chung, hệ thống tập hợp tọa độ rỗng và điểm đếm tích luỹ hàng tuần từ 303 Subzones trải khắp 5 Quận lớn (Districts). Toàn bộ lưới mạng tinh thể này được quy hoạch chéo về hệ Mét tiêu chuẩn **EPSG:3414** (đảm bảo tính chính xác cho Khoảng cách Euclid bề mặt vuông tuyến của Singapore).
+
+### 3.2. Thiết lập Thuật toán Tối ưu hóa (Model Parameter Fitting)
+Thông qua thuật toán tối ưu phi tuyến *Levenberg-Marquardt*, hệ thống thực thi việc nội suy mảng (Curve fitting) để tìm hệ số đặc trưng đối đầu giữa 5 cấu trúc chuẩn mực:
 - *Lognormal*
 - *Gamma*
 - *Exponential*
@@ -39,6 +46,10 @@ Trong diện địa lý địa phương, kết xuất hệ BIC đã đẩy TLF x
 
 Để phá vỡ thế cân bằng, đối đầu KS-Test cấu trúc 1-1 được mang ra xem xét:
 
+![So sánh các phân bổ](zone_distribution_metrics.png)
+
+***Phân tích Tổng quan 5 Mô hình (Dựa trên Hình 1):***
+Biểu đồ phân mảnh trên minh họa tần suất giành chiến thắng tuyệt đối của 5 mô hình thông qua lăng kính phạt tham số nghiêm ngặt nhất (BIC - Bayesian Information Criterion). Sự hòa hạng xuất hiện ở vị trí Quán quân giữa **Shifted Power-Law (28.1%)** và **Lognormal (28.1%)** với cùng 85 phân khu (zones). Đáng chú ý nhất, mô hình phức tạp **Truncated Lévy Flight (TLF)** tụt dốc thê thảm xuống đáy bảng (chỉ chiếm 3.3%). Nguyên do là hệ thống BIC trừng phạt cực nặng các mô hình chứa nhiều tham số phụ (k=4) nhưng không mang lại tính đột phá về độ mượt dòng chảy, qua đó xoá sổ niềm tin truyền thống về việc phải gắn thêm đuôi ngắt $\kappa$ vào môi trường không gian nhỏ chật hẹp.
 ![So sánh Trực tiếp SPL và Lognormal](zone_distribution_metrics_best.png)
 
 ***Nhận xét:*** 
@@ -73,5 +84,7 @@ Nghiên cứu mang đến một định nghĩa nền tảng quan trọng, xoá t
 1. **Phân phối rẽ ngắn đa cực:** Mô hình nặng biến Cut-off đuôi như Lévy Flight hoàn toàn **không phù hợp** trong các kịch bản của đô thị hòn đảo siêu nhỏ/mật độ dầy quây quần (Super Micro-cities). 
 2. **Sự lên ngôi của Shifted Power-Law:** Bằng cách giữ vững hàm rễ mũ, việc giản lược triệt để tham số cắt đuôi (exponential break $\kappa$) đã giúp **Shifted Power-Law (SPL)** thể hiện tính uyển chuyển phi thường, tối thiểu hóa độ lệch EMD và chiếm ưu thế thống kê toán học (điểm KS/BIC tuyệt đối) so với bất kể hệ mã phân phối nào tại cấp liên kết Vĩ mô (Districts). 
 3. **Ứng dụng quy mô Micro:** Tuy SPL là chân lý toán học toàn tuyến, nhưng các ứng dụng Trí tuệ Mạng cấp phường siêu nhỏ nếu muốn nhắm tới khối lượng dịch chuyển con thoi (<2km đi chợ/ga tàu) vẫn hoàn toàn an toàn khi ủy thác cho cơ học R² đỉnh gù khổng lồ của **Lognormal**. 
+
+![Đường cong Phân phối SPL Thực tế](distribution_function.png)
 
 Có thể khẳng định, sự linh biến quy mô này đã hoàn tất nền móng định lượng cho thiết lập Mô hình Lực hấp dẫn/Bức xạ (Radiation Models) mang tính chuẩn mực và nhẹ nhàng cho giao thông tương lai ở đảo quốc Sư Tử.

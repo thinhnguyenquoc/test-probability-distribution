@@ -52,7 +52,15 @@ Tài liệu này tổng hợp lại tuần tự toàn bộ các bước thao tá
   7. Xuất kết quả thồng kê dưới dạng biểu đồ so sánh các mô hình có kết quả BIC giống nhau, cần kiểm tra thêm R_2 và KS-Test để chọn mô hình phù hợp nhất `fb_vs_pl_best.png`
 ---
 
-## Bước 5: Tổng hợp Văn bản Báo cáo Học thuật (Drafting Scientific Paper)
+## Bước 5: Vẽ biểu đồ hàm phân phối
+- **Mã nguồn áp dụng:** `plot_distribution_function.py`
+- **Tập kết quả:** `distribution_function.png`
+- **Mô tả thao tác:**
+  1. Vẽ biểu đồ đường hàm phân bổ SPL theo các thông của báo cáo, bin data district cho mỗi quận được hiễn thị trên biểu đồ, hàm phân bổ dạng đường, các bin dạng điểm.
+  2. Xuất ra ảnh và chèn vào báo cáo như kết quả cuối cùng
+---
+
+## Bước 6: Tổng hợp Văn bản Báo cáo Học thuật (Drafting Scientific Paper)
 - **Văn bản đầu ra:** `draft_scientific_paper.md`
 - **Mô tả thao tác:**
   Miêu tả các bước đã thực hiện, thêm hình biểu đồ, rút ra nhận xét có thể tìm được phân phối phù hợp với dữ liệu của các zone và district. Kết luận phân phối đuôi dài Levy flight chưa phù hợp trong các mô hình siêu độ thị nhỏ. Trường hợp Singapore mô hình LSP chiếm ưu thế thông qua gianx lược phần đuôi dài.
