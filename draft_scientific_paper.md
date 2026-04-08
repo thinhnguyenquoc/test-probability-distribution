@@ -16,8 +16,11 @@ Di chuyển con người thường được coi là tuân theo quy luật phổ 
 
 ## 3. Methodology
 Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình (Lognormal, SPL, TLF, Gamma, Exponential). 
+
 Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d)$:
+
 $$\Phi(d) = \frac{P(d)}{A(d)}$$
+
 Trong đó $A(d)$ là tổng số điểm tin cậy (POI) hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
 
 ## 4. Results: The Scale-Transition
