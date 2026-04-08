@@ -21,7 +21,7 @@ Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính to�
 
 $$\Phi(d) = \frac{P(d)}{A(d)}$$
 
-Trong đó $A(d)$ là tổng số điểm tin cậy (POI) hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
+Trong đó $A(d)$ là tổng số POI hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
 
 ## 4. Results: The Scale-Transition
 
