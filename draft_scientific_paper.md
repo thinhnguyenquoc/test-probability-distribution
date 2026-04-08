@@ -42,14 +42,17 @@ Quá trình tham số hóa dữ liệu thực nghiệm (Curve fitting) được 
 
 **1. Phân phối Lognormal (Tập trung Cự ly ngắn):**
 Hàm mật độ xác suất đặc tả quá trình di chuyển mang tính tích tụ nội tại cao, khuếch đại ở khoảng cách hẹp và rớt nhanh khi $d$ vượt quá bán kính khu dân cư.
+
 $$ P(d) = \frac{1}{d \sigma \sqrt{2\pi}} \exp\left( - \frac{(\ln d - \mu)^2}{2\sigma^2} \right) $$
 
 **2. Phân phối Shifted Power-Law (SPL - Kênh dẫn Cự ly dài):**
 Mô hình toán học điều tiết năng lực ma sát không gian (Spatial friction) qua một hàm lũy thừa bất biến theo tỷ lệ, nhưng được trượt một khoảng $d_0$ để tránh hệ số khuếch đại vô hạn tại $d \to 0$.
+
 $$ P(d) \propto (d + d_0)^{-\alpha} $$
 
 **3. Phân phối Truncated Lévy Flight (TLF - Hệ tham chiếu lý thuyết truyền thống):**
 Kế thừa cơ sở từ các mô hình không gian lớn (Macro Mobility Laws), tích hợp tham số $\kappa$ tạo ra điểm gãy hàm mũ (Exponential Cutoff) cưỡng bức ở phần đuôi phân phối.
+
 $$ P(d) \propto d^{-\alpha} e^{-\kappa d} $$
 
 Song song đó, các mô hình *Gamma* và *Exponential* thuần túy được vận hành như những thước đo tham chiếu nền (baseline).
@@ -153,6 +156,7 @@ Nhằm giải quyết tính liên tục trong chuyển tiếp quy mô phân tíc
 $$ P(d) = w(d) \cdot Lognormal(d) + (1 - w(d)) \cdot SPL(d) $$
 
 Trong đó, hàm trọng số kiểm soát cơ chế chuyển pha không gian được định nghĩa là một hệ số suy giảm bậc mũ:
+
 $$ w(d) = \exp(-d/\lambda) $$
 
 **Cơ sở lý luận hình thái phân phối:**
@@ -179,5 +183,5 @@ Kết quả thực nghiệm lưới tọa độ này thiết lập ranh giới �
 
 ---
 
-## 7.Futrue work
+## 7. Futrue work
 - Áp dụng phân phối để ước lượng thông số cho mô hình gravity
