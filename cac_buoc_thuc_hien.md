@@ -75,7 +75,32 @@ Tài liệu này tổng hợp lại tuần tự toàn bộ các bước thao tá
 
 ---
 
-## Bước 7: Biên soạn Bản Báo cáo Khoa học Tổng kết (Drafting Scientific Paper)
+## Bước 7: Phân tích Sức hút Đô thị dựa trên dữ liệu hạ tầng POI (OpenStreetMap)
+- **Mã nguồn áp dụng:** `analyze_poi_attraction.py`
+- **Tập kết quả:** `poi_analysis_results.csv` và `poi_attraction_analysis.png`
+- **Mô tả thao tác:**
+  1. Tổng hợp dữ liệu POI từ **OpenStreetMap** (`detail_pois.geojson`) thành "Khối lượng hấp dẫn" ($M_j$) cho từng phân khu.
+  2. Giới thiệu mô hình **Hiệu suất di chuyển $\Phi(d) = P(d)/A(d)$** để tách biệt ảnh hưởng của mật độ hạ tầng khỏi ma sát khoảng cách.
+  3. Đo lường hiệu quả mô hình toàn hệ thống ($n = 43$ bins): Đạt độ khớp **$R^2 > 0.97$**, khẳng định hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+  4. Xuất biểu đồ `poi_attraction_analysis.png` minh chứng trực quan việc dữ liệu được làm mịn sau khi chuẩn hóa.
+
+---
+
+## Bước 8: Kiểm chứng Hiệu suất cấp Quận và Xác thực kết quả
+- **Mã nguồn áp dụng:** `analyze_poi_attraction_districts.py`
+- **Tập kết quả:** `district_poi_results.csv` và `district_poi_analysis.png`
+- **Mô tả thao tác:**
+  1. Áp dụng chuẩn hóa POI cho từng quận riêng biệt để kiểm chứng tính ổn định của quy luật trên các khu vực địa lý khác nhau (n=5 districts).
+  2. Ghi nhận độ khớp cực cao tại các khu vực trọng điểm (Ví dụ: **North-East đạt $R^2 = 0.93$**).
+  3. Chứng minh rằng mặc dù Lognormal vẫn giữ ưu thế về hành vi cá nhân, nhưng SPL mô tả tốt hơn cấu trúc hệ thống khi có sức hút hạ tầng bẻ cong không gian.
+
+---
+
+## Bước 9: Biên soạn và Tinh gọn Báo cáo Khoa học (Final Drafting)
 - **Văn bản đầu ra:** `draft_scientific_paper.md`
 - **Mô tả thao tác:**
-  Biên soạn hệ sinh thái kết quả dưới giọng văn Hàn lâm - Học thuật khách quan (Academic Tone). Trình diễn tuần tự từng lập luận: Sự phù hợp của Lognormal tại vùng quy mô hẹp, tính linh động và chính xác của Shifted Power Law ở dải Macro. Phản biện và lật đổ sự dư thừa biến số của TLF truyền thống tại Super Micro-City như Singapore. Lồng ghép bằng chứng hình ảnh. Ấn định phương trình thực nghiệm cuối. Nền tảng này mở đường đi tới các chặng Gravity Model.
+  1. Tập trung nội dung vào sự chuyển dịch: **Lognormal (Cá nhân)** $\rightarrow$ **Shifted Power-Law (Hệ thống)**.
+  2. Hợp nhất 5 bảng số liệu thống kê chi tiết (Subzone, District, POI Efficiency, Facebook EMD).
+  3. Thay thế BIC bằng **RMSE** cho mô hình POI để tăng tính trực quan cho sai số.
+  4. Cập nhật References với đầy đủ mã **DOI** cho 6 tài liệu tham khảo cốt lõi.
+  5. Hoàn thiện giọng văn Hàn lâm, ấn định giả thuyết "Urban Gravity" lấn át hành vi cá nhân ở quy mô lớn.
