@@ -39,18 +39,23 @@ Khoảng cách giữa các tiểu vùng (subzone) được tính theo độ dài
 Quá trình tham số hóa dữ liệu thực nghiệm (Curve fitting) được vận hành thông qua thuật toán tối ưu hóa phi tuyến tính *Levenberg-Marquardt*. Để tìm ra hàm phân phối xác suất di chuyển theo khoảng cách $d$ phù hợp nhất với dữ liệu, 5 mô hình phân phối khác nhau được xem xét:
 
 1. **Lognormal**: Tập trung cự ly ngắn
-   $$ P(d) = \frac{1}{d \sigma \sqrt{2\pi}} \exp\left( - \frac{(\ln d - \mu)^2}{2\sigma^2} \right) $$
 
-2. **Shifted Power-Law (SPL)**: Đo động lực mô tả sức cản cơ bản (Friction) theo tỷ lệ
+    $$ P(d) = \frac{1}{d \sigma \sqrt{2\pi}} \exp\left( - \frac{(\ln d - \mu)^2}{2\sigma^2} \right) $$
+
+3. **Shifted Power-Law (SPL)**: Đo động lực mô tả sức cản cơ bản (Friction) theo tỷ lệ
+
    $$ P(d) \propto (d + d_0)^{-\alpha} $$
 
-3. **Truncated Lévy Flight (TLF)**: Mô hình truyền thống với điểm gãy hàm mũ $\kappa$.
+5. **Truncated Lévy Flight (TLF)**: Mô hình truyền thống với điểm gãy hàm mũ $\kappa$.
+
    $$ P(d) \propto d^{-\alpha} e^{-\kappa d} $$
 
-4. **Gamma Distribution**: Mô hình phân phối liên tục với hai tham số $\alpha$ và $\beta$.
+7. **Gamma Distribution**: Mô hình phân phối liên tục với hai tham số $\alpha$ và $\beta$.
+
    $$ P(d) = \frac{\beta^\alpha}{\Gamma(\alpha)} d^{\alpha-1} e^{-\beta d} $$
 
-5. **Exponential Distribution**: Mô hình phân phối liên tục với một tham số $\lambda$.
+9. **Exponential Distribution**: Mô hình phân phối liên tục với một tham số $\lambda$.
+
    $$ P(d) = \lambda e^{-\lambda d} $$  
 
 Việc đánh giá hiệu suất được dựa vào các độ đo: R², KS-Test, và đặc biệt là Bayesian Information Criterion (BIC) nhằm đánh giá mô hình đơn giản nhưng đáp ứng được bản chất dữ liệu. Nhờ đó mô hình không bị quá overfitting.
