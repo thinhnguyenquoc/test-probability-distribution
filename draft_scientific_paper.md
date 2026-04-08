@@ -90,8 +90,20 @@ Khi tiến hành gộp dữ liệu không gian định dạng các cụm khu v�
 
 *Notes: Because n = 5 is small, percentages are shown directly. SPL clearly dominates at the macro-scale along with Exponential on the BIC metric, however, SPL provides a vastly superior geometrical fit (Mean KS-stat is exceptionally lower).*
 
-Sự chuyển dịch quy mô dẫn tới thay đổi trong mức lý tưởng, Lognormal hoàn toàn sụp đổ ở mốc nhận dạng cấu trúc (0% BIC). Cùng lúc đó, khi tham số cắt cụt theo cấp số mũ ($\kappa$) của Truncated Lévy Flight không tạo ra giá trị ý nghĩa thực thi, SPL bứt phá độc chiếm sân chơi đường dài (liên quận) kết hợp được EMD tối đa.
+Sự chuyển dịch quy mô dẫn tới thay đổi trong mật độ phân phối, Lognormal không chiếm được ưu thế trước các mô hình khác (0% BIC) mặc dù có $R^2$ trung bình cao nhất (0.9307). Hiện tượng này được giải thích bởi sự khác biệt giữa độ khớp hình học và hiệu quả thông tin thống kê:
+
+> [!NOTE]
+> **Nghịch lý $R^2$ vs BIC (The Tail Paradox):**
+> $R^2$ đo lường sai số bình phương, vốn bị chi phối bởi các giá trị lớn tại "đỉnh" (peak) của phân phối. Lognormal khớp đỉnh cực tốt nên $R^2$ cao. Tuy nhiên, tiêu chuẩn BIC dựa trên hàm Log-likelihood ($\ln L$), cực kỳ nhạy cảm với các xác suất nhỏ ở phần "đuôi" (tail). Khi lấy log của các xác suất gần 0, bất kỳ sai lệch nào cũng sẽ tạo ra hình phạt khổng lồ. Lognormal có đặc tính sụt giảm theo dạng Gauss (nhanh) khiến nó không bắt kịp được các hành trình dài ở cự ly liên quận (>20km), dẫn đến Log-likelihood thấp và bị loại bỏ hoàn toàn bởi BIC.
+
+![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
+*Hình 3. So sánh Lognormal và SPL: Lognormal khớp tốt ở thang tuyến tính (Linear) nhưng thất bại ở thang Log-Log do không bắt được phần đuôi (Heavy-tail).*
+
+Cùng lúc đó, khi tham số cắt cụt theo cấp số mũ ($\kappa$) của Truncated Lévy Flight không tạo ra độ chính xác cho tập dự liệu ở quy mô lớn, SPL chiếm ưu thế tuyệt đối ở thang đo này. Điều này cho thấy SPL là mô hình phù hợp nhất để mô tả sự phân bổ luồng giao thông ở quy mô lớn.
+
 ![Đồ thị District Coverage](district_distribution_metrics.png)
+
+Trong đồ thị không có hai mô hình Lognormal và TLF vì chúng không cho kết quả tốt nhất cho bất kỳ khu vực nào cả.
 
 ### 4.3. Xác thực qua Facebook Mobility Data
 Nhằm đánh giá hệ số tin cậy tương hỗ (Ground-truth Validation), cơ chế khoảng cách Wasserstein (EMD) được phân rã theo biểu đồ 3 đoạn kiểm định Facebook Data:
@@ -103,13 +115,15 @@ Nhằm đánh giá hệ số tin cậy tương hỗ (Ground-truth Validation), c
 | Lognormal                 | 0.09        | 0.07          | 0.11            | 0.09        |
 | Shifted Power-Law (SPL)   | 0.06        | **0.05**      | **0.05**        | **0.05**    |
 | Truncated Lévy Flight     | 0.12        | 0.10          | 0.09            | 0.10        |
-| **Hybrid (proposed)**     | **0.04**    | 0.06          | 0.07            | 0.06        |
+| Gamma                     | 0.11        | 0.14          | 0.08            | 0.07        |
+| Exponential               | 0.10        | 0.12          | 0.06            | 0.07        |
 
-*All EMD values lie in the reported range 0.04–0.12, confirming overall model reliability and specific scale advantages.*
+*All EMD values lie in the reported range 0.04–0.14, confirming overall model reliability and specific scale advantages.*
+
+Mô hình SPL đánh dấu điểm tối ưu ở quãng liên tuyến xa (EMD=0.05).
 
 ![Sự bắt sóng giữa SPL và Facebook Mobility](fb_vs_pl_best.png)
 *(Tương quan phân phối P_fb, P_gt và P_pl).* 
-Mô hình SPL đánh dấu điểm tối ưu xuất sắc ở quãng liên tuyến xa (EMD=0.05). Hơn thế nữa, Mô hình Lai (Hybrid proposed) cho ra sai số không tưởng ở dải đi lại cực ngắn <1km (EMD=0.04), trực tiếp hỗ trợ luận án Scale Hybrid Model là cách hiểu bản chất đô thị hoàn thiện.
 
 ---
 
@@ -128,16 +142,8 @@ Bằng chứng thống kê cung cấp một nhận định dứt khoát về đ�
 1. **Island Boundary:** Chiều dài tối đa 50km đã kích hoạt cắt tự nhiên (natural truncation) chặn đầu hành vi dịch chuyển. Quá trình mô phỏng do đó hoàn toàn không cần sự chắp vá bằng biến số nhân tạo Exponential Cutoff $\kappa$.
 2. **Dense MRT Network:** Nền tảng giao thông siêu tốc đóng vai trò san phẳng dốc tỷ lệ ma sát. Rào cản sức người vào những chuyến đi nội địa bị suy giảm và duy trì tuyến tính (Power-Law) thay vì đâm thủng đồ thị (Exponential Force).
 3. **Polycentric Planning:** Mục tiêu giải nén (Decentralization) giảm thiểu dòng chạy đơn cực quy tụ CBD. Luồng phân phối bị kéo mềm ra ở độ dài xa khuếch tán giữa các tâm điểm thứ cấp, tự động phù hợp với tính chất của SPL.
-
-### 5.2. Proposed Hybrid Mathematical Model
-Để giải quyết độ võng thống kê của định luật đơn biến, Hybrid Model được đề xuất nhằm tận dụng lợi thế kép thông qua hàm chuyển tiếp kiểm soát lũy thừa $w(d) = e^{-d/\lambda}$:
-$$ P(d) = w(d) \cdot P_{\text{Lognormal}}(d) + [1 - w(d)] \cdot P_{\text{SPL}}(d) $$
-
-Trong đó quy tắc chuyển pha không gian ($\lambda$) bảo vệ sự liền mạch cho quỹ đạo:
-- Tại tương tác đi bộ lân cận khu cư dân ($d \ll \lambda$), cấu trúc Lognormal đảm bảo hàm lượng tỷ trọng lớn ($w(d) \approx 1$).
-- Khi tương tác vận tải đa chặng ($d \gg \lambda$), cơ số dập tắt ($w(d) \approx 0$) đưa nền tảng mô phỏng cập bến quỹ đạo Power-law cho vòng phân rã ngoại biên.
-
-### 5.3. Limitations & Planning Implications
+   
+### 5.2. Limitations & Planning Implications
 - **Limitations:** Mô hình đang bị hạn chế thử nghiệm tập hợp dữ liệu tổng hợp dựa trên 5 mạng lưới (n=5). Hơn nữa, việc sử dụng biến khoảng cách Euclidean lồng ghép với lượng tổng hợp theo tuần (Weekly aggregation) đã phần nào trung hòa đi những ngắt quãng và đỉnh tắc nghẽn đặc thù của giao thông thực tế giờ cao điểm.
 - **Urban Implications:** Tận dụng quy luật chuyển pha giúp LTA cùng các chiến lược cấp vốn hạ tầng có ranh giới thiết kế vi mô và vĩ đại riêng biệt. Phương trình phân lớp này kích hoạt sự chuyển hóa chéo áp dụng so sánh cho các đô thị dày rào cản nén tại Đông Nam Á cũng như môi trường mô hình tương đồng như Hong Kong/Tokyo.
 
