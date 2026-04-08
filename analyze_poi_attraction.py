@@ -61,15 +61,26 @@ popt_log_eff, _ = curve_fit(lognormal_dist, x, y_eff, p0=[1, 1, 1], maxfev=10000
 # SPL fit on Phi(d)
 popt_spl_eff, _ = curve_fit(shift_power_law, x, y_eff, p0=[1, 1, 1.5], maxfev=10000)
 
-# Calculate R2 for Phi(d)
-def get_r2(y_true, y_pred):
-    return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
+# Calculate metrics for Phi(d)
+def get_metrics(y_true, y_pred, k, n):
+    res = y_true - y_pred
+    rss = np.sum(res**2)
+    rmse = np.sqrt(rss / n)
+    r2 = 1 - rss / np.sum((y_true - np.mean(y_true))**2)
+    
+    # Standard KS-stat
+    cdf_true = np.cumsum(y_true)
+    cdf_pred = np.cumsum(y_pred)
+    ks_stat = np.max(np.abs(cdf_true - cdf_pred))
+    
+    return round(r2, 4), round(ks_stat, 4), round(rmse, 6)
 
-r2_log_eff = get_r2(y_eff, lognormal_dist(x, *popt_log_eff))
-r2_spl_eff = get_r2(y_eff, shift_power_law(x, *popt_spl_eff))
+n = len(x)
+r2_log_eff, ks_log_eff, rmse_log_eff = get_metrics(y_eff, lognormal_dist(x, *popt_log_eff), 3, n)
+r2_spl_eff, ks_spl_eff, rmse_spl_eff = get_metrics(y_eff, shift_power_law(x, *popt_spl_eff), 3, n)
 
-print(f"Efficiency Fit R2 (Lognormal): {r2_log_eff:.4f}")
-print(f"Efficiency Fit R2 (Shifted Power-Law): {r2_spl_eff:.4f}")
+print(f"Lognormal: R2={r2_log_eff}, KS={ks_log_eff}, RMSE={rmse_log_eff}")
+print(f"SPL: R2={r2_spl_eff}, KS={ks_spl_eff}, RMSE={rmse_spl_eff}")
 
 # 6. Plotting
 plt.figure(figsize=(15, 6))

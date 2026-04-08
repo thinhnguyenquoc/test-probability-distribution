@@ -59,12 +59,12 @@ SPL chiếm ưu thế tuyệt đối về độ khớp hình học (KS-stat th�
 
 **Table 3.** Goodness-of-fit for Mobility Efficiency $\Phi(d)$ (POI-normalized).
 
-| Distribution              | $R^2$ (Global Efficiency) |
-|---------------------------|--------------------------|
-| **Lognormal**             | **0.9769**               |
-| **Shifted Power-Law (SPL)**| **0.9768**               |
+| Distribution              | $R^2$ (Efficiency) | KS-stat | RMSE      |
+|---------------------------|-------------------|---------|-----------|
+| **Lognormal**             | **0.9769**        | 0.1780  | **0.0075**|
+| **Shifted Power-Law (SPL)**| **0.9768**        | **0.0937**| 0.0075    |
 
-Độ khớp gần như tuyệt đối ($R^2 > 0.97$) sau khi chuẩn hóa chứng minh rằng một khi đã tính đến sự hấp dẫn của hạ tầng, quy luật ma sát khoảng cách trở nên vô cùng ổn định.
+Độ khớp gần như tuyệt đối ($R^2 > 0.97$) sau khi chuẩn hóa chứng minh rằng một khi đã tính đến sự hấp dẫn của hạ tầng, quy luật ma sát khoảng cách trở nên vô cùng ổn định. Đáng chú ý, SPL cung cấp độ khớp hình học (KS-stat) tốt hơn hẳn, củng cố giả thuyết về cấu trúc đuôi lũy thừa ở quy mô này.
 
 ![POI Attraction Analysis](poi_attraction_analysis.png)
 *Hình 2. Hiệu suất di chuyển Phi(d) sau khi chuẩn hóa theo POI. Dữ liệu trở nên cực kỳ mịn, xác nhận sức hút hạ tầng là biến số quyết định bẻ cong không gian di chuyển.*
