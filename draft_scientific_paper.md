@@ -7,7 +7,7 @@ date: "April 2026"
 # Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
-Nghiên cứu này làm rõ bước chuyển dịch của động lực học đô thị từ hành vi cá nhân sang cấu trúc hạ tầng thông qua phân tích 5 mô hình phân phối tại Singapore. Ở cấp độ vi mô (Subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn của cá thể. Ở cấp độ vĩ mô (District), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự thống trị của **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$) đạt độ khớp $R^2 > 0.97$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển phù hợp với hành vi và cấu trúc hạ tầng tại Singapoẻ. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (Subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn của cá thể. Ở cấp độ vĩ mô (District), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự thống trị của **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$ ) đạt độ khớp $R^2 > 0.97$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
 
 ## 2. Introduction & Hypothesis
 Di chuyển con người thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén như Singapore, chúng tôi đặt giả thuyết về một sự chuyển pha dựa trên quy mô quan sát:
