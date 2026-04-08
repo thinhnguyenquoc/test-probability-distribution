@@ -1,64 +1,77 @@
 ---
-title: "Đánh giá các Mô hình Phân phối Không gian Di chuyển tại Kịch bản Đô thị Mật độ cao: Nghiên cứu trường hợp tại Singapore"
-author: "Báo cáo Nghiên cứu Kỹ thuật Tích hợp"
+title: "Nghiên cứu Tính tương thích của Mô hình Di chuyển Không gian Đa Tỷ lệ Khảo sát tại Đảo quốc Singapore"
+author: "Báo cáo Nghiên cứu Kỹ thuật"
 date: "Tháng 4, 2026"
 ---
 
-# Đánh giá các Mô hình Phân phối Không gian Di chuyển tại Kịch bản Đô thị Mật độ cao: Nghiên cứu trường hợp tại Singapore
+# Nghiên cứu Tính tương thích của Mô hình Di chuyển Không gian Đa Tỷ lệ: Khảo sát tại Đảo quốc Singapore
 
 ## 1. Tóm tắt (Abstract)
-Bài viết này nghiên cứu đặc tính di chuyển của con người trong môi trường đô thị nhỏ, mật độ cực cao (đảo quốc Singapore) thông qua biểu đồ phân kỳ hành trình OD (Origin-Destination). Bằng việc sử dụng hệ trục tọa độ mét chuẩn nội địa SVY21 (EPSG:3414) để trích xuất khoảng cách Euclid mặt phẳng, nghiên cứu đã khớp dữ liệu định tính thực tế thay vì tọa độ hình trụ. Các mô hình lý thuyết kinh điển được kiểm thử bao gồm: Truncated Lévy Flight (TLF), Shifted Power-Law, Exponential, Gamma và Lognormal. Thông qua đánh giá đa tỷ lệ (Multi-scale) từ vi mô đến vĩ mô kết hợp hệ liệt kê trừng phạt thông tin khắt khe (AIC, BIC, KS-Test, Likelihood Ratio), kết quả chỉ ra đặc tính lưỡng cực: Hàm **Lognormal** biểu hiện hiệu suất vượt trội để mô tả "khoảng cách ưa thích" nội bộ hẹp, trong khi **Shifted Power-Law** hoàn hảo đáp ứng mạng lưới vĩ mô toàn đảo do sự dư thừa tham số của TLF. Kết quả đánh giá cấp Quận (Cross-validation) cùng Facebook Mobility đạt độ tương đồng CPC lên tới ~85% (MAE xấp xỉ 0.07). Cuối cùng, một mạng giả lập tự động cơ sở dựa trên Radiation Model (Mô hình bức xạ) được thiết lập, mang về điểm nền tảng hệ thống dự đoán dòng giao thông CPC 42.44%.
+Việc hiểu rõ thói quen dịch chuyển của con người thông qua hàm phân phối xác suất luôn là gốc rễ của những bài toán quy hoạch giao thông và kinh tế đô thị. Bài viết này trình bày kết quả phân tích hệ thống phân phối khoảng cách lưu lượng OD trên lãnh thổ chật hẹp, mật độ cực cao (Singapore). Thay vì áp dụng cứng nhắc một hàm cho toàn bộ thành phố, chúng ta tiến hành khảo nghiệm 5 mô hình toán lý cơ sở ở hai tỷ lệ: Cấp vi mô (Subzone) và Cấp vĩ mô (District). Bằng hàng loạt bài kiểm định thông tin nghiêm ngặt từ Akaike/Bayesian (AIC/BIC), KS-Test đỉnh sinh thái, và chứng thực Wasserstein Distance qua nền dữ liệu Viễn thông (Facebook Mobility). Kết quả chỉ định thẳng thừng sự suy thoái của lý thuyết đường dài Truncated Lévy Flight truyền thống, chứng thực sự áp đảo gọn gàng của **Shifted Power-Law** trong quy hoạch đường dài và năng lực vẽ đỉnh xuất sắc của **Lognormal** cho cự ly đi bộ dân cư.
 
 ---
 
-## 2. Giới thiệu (Introduction)
-Phân tích mô hình dịch chuyển không gian (spatial mobility modelling) là công nghệ lõi để tối ưu hoá cơ sở định tuyến hạ tầng và quy hoạch chuỗi cung ứng. Tuy Truncated Lévy Flight (TLF) thường là mô hình trọng điểm để biểu diễn dải không gian rã mũ "đuôi cắt cực đoan" của con người ở diện tích quốc gia rộng lớn, nhưng trên lãnh thổ hải đảo hẹp (dưới 50km) như Singapore, dạng cắt này trở nên suy biến. Nghiên cứu tập trung rà soát hệ phương trình từ các khung tiêu chí cơ bản ($R^2$) tới mức độ khắc nghiệt (AIC/BIC) nhằm tìm ra một thiết lập cốt lõi chuẩn nhất, đồng thời đối thử lại với hai bộ đo kiểm viễn thông thực chứng.
+## 2. Giới thiệu và Mục tiêu nghiên cứu (Introduction)
+Trong hàng thập kỷ, **Truncated Lévy Flight (TLF)** - với đặc tính bước nhảy dài ngắt quãng hình mũ - luôn được xem là kim chỉ nam để lập trình mô hình Gravity đối với các quốc gia sở hữu lãnh thổ rộng lớn như Mỹ hay Châu Âu. 
+Tuy nhiên, cấu trúc siêu đô thị (Micro Super-city) bao bọc bởi biển và diện tích < 50km như Singapore bộc lộ các vấn đề hóc búa:
+1. Có thể tìm được phân phối duy nhất phù hợp với mọi quy mô không?
+2. Có cần thiết phải duy trì cơ chế cắt cụt phân rã đuôi ($\kappa$) của Truncated Lévy Flight hay không?
+Dự án được triển khai để giải quyết những câu hỏi trên.
 
 ---
 
-## 3. Dữ liệu và Phương pháp luận (Methodology)
+## 3. Quá trình Vận hành và Phương pháp Kỹ thuật (Methodology)
+Tập hợp tọa độ và điểm đếm từ 303 Subzones trải khắp 5 Quận trung tâm (Districts). Toàn bộ được quy hoạch chéo về hệ Mét tiêu chuẩn EPSG:3414 (Khoảng cách Euclid vuông tuyến). Thuật toán tối ưu *Levenberg-Marquardt* thực thi việc nội suy (Curve fitting) đối đầu giữa:
+- *Lognormal*
+- *Gamma*
+- *Exponential*
+- *Shifted Power-Law (SPL)*
+- *Truncated Lévy Flight (TLF)*
 
-### 3.1. Dữ liệu Đầu vào và Ma trận Mạng lưới Euclid
-- **Khung phân tách Không gian:** Shapefile 323 cụm tâm phân khu (Centroids) được quy chuyển hoàn toàn về không gian chiếu chuẩn **Singapore SVY21 (EPSG:3414)**, cung cấp khoảng cách Euclid mặt phẳng siêu tuyến tính thay vì Haversine bề cong trái đất.
-- **Tiêu chuẩn Thiết lập Giả định Viễn thông (Facebook Mobility):** Khung xác suất di chuyển của tập số được đúc xuống các chuẩn nhận diện khoảng cách công nghệ viễn thông `[(0, 1), [1, 10), [10, 100), 100+]` (km). Cập nhật độ chặt chẽ bằng cách bổ sung thêm sai số bình phương trung bình **(MRS/RMSE)** ngoài MAE.
-
-### 3.2. Cấu trúc Mô hình và Công cụ Đo lường
-Các tham số uốn nắn thực nghiệm được khớp qua tối ưu hóa phi tuyến học *Levenberg-Marquardt* cho:
-1. **Truncated Lévy Flight (TLF)**: $P(\Delta r) \sim (\Delta r + \Delta r_0)^{-\beta} \exp(-\Delta r/\kappa)$
-2. **Shifted Power-Law (SPL)**: $P(\Delta r) \sim (\Delta r + \Delta r_0)^{-\beta}$
-3. **Exponential**: $P(\Delta r) \sim \exp(-\Delta r/\lambda)$
-4. **Gamma**: $P(\Delta r) \sim (\Delta r)^{\alpha-1} \exp(-\Delta r/\lambda)$
-5. **Lognormal**: $P(\Delta r) \sim \frac{1}{\Delta r} \exp \left( - \frac{(\ln \Delta r - \mu)^2}{2\sigma^2} \right)$
-
-Các nhóm chỉ số đo kiểm chuyên gia để loại bỏ bất thường bao gồm: Hệ số thanh lọc cấu trúc thừa Akaike/Bayesian (AIC/BIC), Hệ số KS-Test đo lỗi tích luỹ lớn nhất (D), và Phép thử Giả thuyết Tương quan (Likelihood Ratio).
+Các thông số đánh giá bao gồm: Hợp trị R², Độ võng cấu trúc Kolmogorov-Smirnov (KS-Test), Khoảng cách dịch chuyển thực tế lõi (Wasserstein Distance - EMD), và Hệ thống Thông tin Phạt Tham số của Bayes (BIC) để ngăn chặn việc ngộ nhận mô hình nhiều tham số.
 
 ---
 
-## 4. Kết quả và Đánh giá (Results & Evaluation)
+## 4. Phân tích Kết quả (Results & Evaluation)
 
-### 4.1. Sự thoái trào của Truncated Lévy Flight theo quy mô không gian
-Bằng nội suy riêng biệt cho mạng tinh thể hơn 300 điểm phân khu khởi hành (Subzones gốc), kết quả phơi bày: Cấp độ vi mô kích hoạt giới hạn cắt cụt phân rã mũ (Exponential cut-off) tự nhiên ở trên **70% phân khu (216 vùng)** với trung vị ngắt kết nối tại mốc $\kappa = 8.05$ km. Con người chạm đến ranh giới biển lập tức đánh võng lượng tương tác về 0. Tuy nhiên, khi hợp nhất dữ liệu ở cấp độ Toàn Đảo Lớn (Vĩ Mô), tính cắt cụt bị xoá sổ bởi hiệu ứng đám đông ($\kappa \to \infty$). Đường cong gãy ngược về lại chuẩn Power-law thông thường.
+### 4.1. Thử nghiệm Đa mô hình tại lưới phân khu nhỏ - Zone (Micro-scale)
+Trong diện địa lý địa phương, kết xuất hệ BIC đã đẩy TLF xuống vị trí chót bảng khi số phân khu thích ứng chỉ đếm trên đầu ngón tay. Cuộc chiến thực sự chuyển thành đối đầu song mã giữa **Shifted Power-Law (SPL)** và **Lognormal** khi cả hai cùng đạt kỷ lục ưu thế tại 85 zones (28.1%).
 
-### 4.2. Cấp Vi mô (Micro-scale) - Khung Lognormal chiếm tuyệt đại đa số
-Sàng lọc quy mô cấp phố độc lập cho ra cái tên áp đảo nhất là **Lognormal**, hoàn thiện điểm số tại **69.4% diện tích phân dải** (209 zone), để Gamma xếp nhì ở mức 26.6%. Ở cự ly sống ngắn, hành vi con người xoay quanh một số điểm lõi phục vụ (chợ, trung tâm sinh hoạt) trong cự ly "ưa thích xê dịch" mốc 2-5km. Hàm Lognormal lột tả xuất sắc đỉnh sưng gù hình chóp (peak) cho sở thích này, thứ mà SPL hay Exponential dốc đứng hoàn toàn mù mờ.
+Để phá vỡ thế cân bằng, đối đầu KS-Test cấu trúc 1-1 được mang ra xem xét:
 
-### 4.3. Cấp Vĩ mô (Macro-scale) - Bằng chứng KS-Test và BIC chọn Lũy thừa Di dịch
-Trên dải nhìn rộng vĩ mô (Big Data) tạo ra đường dài phân nhánh rớt lơi lả (Heavy-tail). Theo số liệu kiểm thử ngặt nghèo nhất:
-- Máy giải toán cho thấy mô hình **Shifted Power-Law (SPL)** chiến thắng tuyệt đối trên đường dài với điểm **BIC** cực thấp (vượt Exponential và Gamma) và khoảng rèn ma trận **KS Test đỉnh cao (0.0386)**.
-- Điểm chốt chặn: Kiểm định độ tương thích vi phân **Likelihood Ratio (LR Test)** dội vào hai mô hình cạnh tranh nhau SPL và TLF trả về mốc p-value khá cao **0.596** (> 0.05). Chứng tỏ về mặt toán lượng, việc lắp thêm tham số mũ đuôi ngắt $\kappa$ của TLF vào môi trường Singapore quy mô ngang là phung phí và yếu kém so với sự chặt chẽ tinh gọn của Power-law bậc 3 tham số. 
+![So sánh Trực tiếp SPL và Lognormal](/Users/nguyenquocthinh/Documents/test-probability-distribution/zone_distribution_metrics_best.png)
 
-### 4.4. Chứng thực Giao thoa (Cross-validation) qua mạng Viễn thông Facebook
-Quy nạp ma trận giao điểm (Zone) thành ma trận chùm hành chính (District), sự giống nhau giữa xác suất dự đoán $P_{gt}$ và xác suất thiết bị ping thực tế $P_{fb}$ đem lại độ thành công tuyệt hảo:
-- Quận **Tây (SGP.5)**: Sai số MAE cực thấp 0.0736 | MRS (RMSE) = **0.0901** | Bắt sóng dòng chảy **CPC = 85.28%**
-- Quận **Đông Bắc (SGP.4)**: MAE = 0.0793 | MRS = **0.0970** | Tỷ lệ giao tuyến **CPC = 84.15%**
-- Quận **Đông (SGP.2)**: MAE = 0.0845 | MRS = **0.0996** | Tỷ lệ giao tuyến **CPC = 83.11%**
-- Quận **Bắc (SGP.3)**: MAE = 0.0821 | MRS = **0.1050** | Tỷ lệ giao tuyến **CPC = 83.58%**
-- Quận **Trung Tâm (SGP.1)**: MAE = 0.1086 | MRS = **0.1318** | Tỷ lệ giao tuyến **CPC = 78.29%** (Dịch chuyển nhẹ tại chùm diện tích bị phân cắt cực nhỏ dưới 1km của lõi CBD).
+***Nhận xét:*** 
+Sự kiện này chỉ rõ: Lognormal cung cấp tỷ lệ giải thích đếm dồn $R^2$ cực cao (`0.82`) lột tả được hiện tượng dồn cục đỉnh chóp trong 1-2km đầu tiên mà dân đô thị nội thị (micro) hay đi dạo. Tuy nhiên, nếu khắt khe ở mức độ mượt của tổng thể hình nón khoảng cách ngẫu nhiên (KS-Test dãn ra ở 0.09 và thắng trực diện 196 zones), cấu trúc toán học của **Shifted Power-Law** mới là chuẩn mực toán học bền vững. Cả 2 đều chia nhau nắm quyền tại điểm quy mô cực nhỏ này. 
 
-### 4.5. Triển khai cấu trúc Giao thông Nền qua Mô hình Bức Xạ (Radiation Proxy Model)
-Với đặc thù khối lượng số lớn của 104,329 cặp khoảng cách đo tay tiêu chuẩn, báo cáo lập trình trực tiếp bộ mô phỏng quy hoạch Bức Xạ cơ bản nhằm chứng thực dòng tương tác O-D. Đối lưu khởi xướng sử dụng Trip Count như biến số giả định khối dân cư ($m_i, n_j$). Hệ mạng lập tức kích hoạt, đạt ngưỡng tương giao lượng commuters thực tế với **CPC Baseline là 42.44%**. So với mốc 30% chưa tinh chỉnh cấu hình của khu vực đô thị thì cấu hình lưới Singapore sở hữu đặc tính thu hút việc làm/dịch vụ xuất sắc nhất.
+### 4.2. Khảo đạc Đa mô hình tại lưới liên quận - District (Macro-scale)
+Khi gộp toàn bộ sự xé lẻ của 303 cụm dân cư lên cấp 5 Quận trung tâm, biểu đồ di chuyển trở thành một cú đổ đèo "Heavy-tail" khổng lồ tuyệt hảo. Tính chất phân mảnh hình mũi chóp nội thành biến mất hoàn toàn. 
+
+Lúc này, Lognormal chính thức bị loại khỏi cuộc đua Top 1 do thiếu khả năng sinh lực ở tỷ lệ Vĩ mô (vốn không có đỉnh chóp trung tâm nào trên một dải không gian 30km liên khu liên quận). Đặc biệt, **Likelihood Ratio Test (p-value)** vạch trần yếu điểm tồi tệ nhất của Truncated Lévy Flight (TLF): Nó cố mang biến $\kappa$ (Exponential Cutoff) đi hãm phanh đồ thị tại 8km, nhưng việc bóp méo đó trên dữ liệu liên quận gây ra thất bại. **Shifted Power-Law thống trị kỷ nguyên này do lược giản hoàn toàn phần đuôi dư thừa của TLF**, giữ lại thông số cực kỳ hiệu quả.
+
+![Đồ thị District Coverage](/Users/nguyenquocthinh/Documents/test-probability-distribution/district_distribution_metrics.png)
+![Đồ thị Lognormal vs SPL Cấp Quận](/Users/nguyenquocthinh/Documents/test-probability-distribution/district_distribution_metrics_best.png)
+
+***Nhận xét:*** 
+Ở cả 5 Quận, SPL bao trùm điểm KS-Test rất lùn và đánh bại mọi cấu trúc dư thừa, đoạt cúp mượt mà nhất trong ma trình định lý Bayesian. 
+
+### 4.3. Kiểm thử chéo với Hệ thống Mạng Big-Data Viễn thông (Facebook Mobility Validation)
+Để chứng thực việc Shifted Power-Law liệu có phải là cấu trúc phù hợp trên lãnh thổ Singapore không, nhóm nghiên cứu đã sinh ra **Dữ liệu Mô phỏng từ Đường cong SPL** rồi đem so kè trực diện thành tựu dự báo viễn thông của trạm vệ tinh Facebook.
+
+Dải dữ liệu chia vào giỏ chuẩn: `<1km, 1-10km, 10-100km`. Khoảng cách lệch hình học EMD (Wasserstein Distance) đạt ngưỡng chói sáng: **Chỉ cách biệt 0.05 đến 0.11**. RMSE/MAE được bảo chứng.
+
+![Sự bắt sóng giữa SPL và Facebook Mobility](/Users/nguyenquocthinh/Documents/test-probability-distribution/fb_vs_pl_best.png)
+
+***Nhận xét:*** 
+Biểu đồ 4 cột (thể hiện P_fb, P_gt và P_pl) theo sát nhau như những người anh em sinh ba. Điểm sụt cục bộ của SPL xuất hiện rất lắt nhắt ở khoảng nhỏ nhưng nhìn chung lượng thể tích khối lưu chuyển liên vùng (từ 1 đến 10km) được SPL (Đỏ) bám rất hoàn mĩ vào cột Facebook (Xanh). 
 
 ---
 
-## 5. Kết luận (Conclusion)
-Dữ kiện xác đáng này phế truất thói quen dùng Truncated Lévy Flight truyền thống cho môi trường đảo hình thái nhỏ cứng. Phân cực toán học là cần thiết để lập trình cho mô phỏng di chuyển mới: **Dùng hàm Lognormal Distribution cho máy dò tìm cấp cơ sở bán kính nội khu**, và **kiến thiết hàm Shifted Power-Law cho lập kế luân chuyển ngoại biên Big Data Toàn Cảnh**. Cùng với đó, độ tương quan đồng dạng đáng kinh ngạc (~85% CPC) với lưới ma trận định vị gốc do tập đoàn Facebook phân rã càng làm sáng tỏ mức độ phản ánh tin cậy của lưới Centroid nội suy. Kết quả của nghiên cứu đã hoàn tất nền tảng khung mã vững chãi, sẵn sàng ráp nối chuyên sâu cùng hệ biến đổi việc làm (Land Use, Jobs) của O-D Radiation Models tạo nên tính chính xác vượt bậc cho mạng lưới giao thông tương lai ở đảo quốc Sư Tử.
+## 5. Kết luận khoa học (Conclusion & Discussion)
+Nghiên cứu mang đến một định nghĩa nền tảng quan trọng, xoá tan sự bảo thủ của Truncated Lévy Flight (TLF) lên các đảo quốc dày đặc như Singapore. Từ các mô thức vận hành tính toán chuyên sâu cấp khu vực cho tới sự công nhận của sóng Ping Di động:
+
+1. **Phân phối rẽ ngắn đa cực:** Mô hình nặng biến Cut-off đuôi như Lévy Flight hoàn toàn **không phù hợp** trong các kịch bản của đô thị hòn đảo siêu nhỏ/mật độ dầy quây quần (Super Micro-cities). 
+2. **Sự lên ngôi của Shifted Power-Law:** Bằng cách giữ vững hàm rễ mũ, việc giản lược triệt để tham số cắt đuôi (exponential break $\kappa$) đã giúp **Shifted Power-Law (SPL)** thể hiện tính uyển chuyển phi thường, tối thiểu hóa độ lệch EMD và chiếm ưu thế thống kê toán học (điểm KS/BIC tuyệt đối) so với bất kể hệ mã phân phối nào tại cấp liên kết Vĩ mô (Districts). 
+3. **Ứng dụng quy mô Micro:** Tuy SPL là chân lý toán học toàn tuyến, nhưng các ứng dụng Trí tuệ Mạng cấp phường siêu nhỏ nếu muốn nhắm tới khối lượng dịch chuyển con thoi (<2km đi chợ/ga tàu) vẫn hoàn toàn an toàn khi ủy thác cho cơ học R² đỉnh gù khổng lồ của **Lognormal**. 
+
+Có thể khẳng định, sự linh biến quy mô này đã hoàn tất nền móng định lượng cho thiết lập Mô hình Lực hấp dẫn/Bức xạ (Radiation Models) mang tính chuẩn mực và nhẹ nhàng cho giao thông tương lai ở đảo quốc Sư Tử.

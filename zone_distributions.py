@@ -82,7 +82,7 @@ print(f"Bắt đầu phân tích từng zone trong tổng số {total_zones} zon
 for zone, group in df.groupby('ORIGIN_SUBZONE'):
     total_trips = group['COUNT'].sum()
     # Chỉ xét những zone có lượng chuyến đi đủ lớn để có ý nghĩa phân phối
-    if total_trips < 500 or len(group) < 10:
+    if total_trips < 100 or len(group) < 5:
         continue 
         
     distances = group['distance'].values
