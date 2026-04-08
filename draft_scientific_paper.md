@@ -39,7 +39,7 @@ Trong diện địa lý địa phương, kết xuất hệ BIC đã đẩy TLF x
 
 Để phá vỡ thế cân bằng, đối đầu KS-Test cấu trúc 1-1 được mang ra xem xét:
 
-![So sánh Trực tiếp SPL và Lognormal](/Users/nguyenquocthinh/Documents/test-probability-distribution/zone_distribution_metrics_best.png)
+![So sánh Trực tiếp SPL và Lognormal](zone_distribution_metrics_best.png)
 
 ***Nhận xét:*** 
 Sự kiện này chỉ rõ: Lognormal cung cấp tỷ lệ giải thích đếm dồn $R^2$ cực cao (`0.82`) lột tả được hiện tượng dồn cục đỉnh chóp trong 1-2km đầu tiên mà dân đô thị nội thị (micro) hay đi dạo. Tuy nhiên, nếu khắt khe ở mức độ mượt của tổng thể hình nón khoảng cách ngẫu nhiên (KS-Test dãn ra ở 0.09 và thắng trực diện 196 zones), cấu trúc toán học của **Shifted Power-Law** mới là chuẩn mực toán học bền vững. Cả 2 đều chia nhau nắm quyền tại điểm quy mô cực nhỏ này. 
@@ -49,8 +49,8 @@ Khi gộp toàn bộ sự xé lẻ của 303 cụm dân cư lên cấp 5 Quận 
 
 Lúc này, Lognormal chính thức bị loại khỏi cuộc đua Top 1 do thiếu khả năng sinh lực ở tỷ lệ Vĩ mô (vốn không có đỉnh chóp trung tâm nào trên một dải không gian 30km liên khu liên quận). Đặc biệt, **Likelihood Ratio Test (p-value)** vạch trần yếu điểm tồi tệ nhất của Truncated Lévy Flight (TLF): Nó cố mang biến $\kappa$ (Exponential Cutoff) đi hãm phanh đồ thị tại 8km, nhưng việc bóp méo đó trên dữ liệu liên quận gây ra thất bại. **Shifted Power-Law thống trị kỷ nguyên này do lược giản hoàn toàn phần đuôi dư thừa của TLF**, giữ lại thông số cực kỳ hiệu quả.
 
-![Đồ thị District Coverage](/Users/nguyenquocthinh/Documents/test-probability-distribution/district_distribution_metrics.png)
-![Đồ thị Lognormal vs SPL Cấp Quận](/Users/nguyenquocthinh/Documents/test-probability-distribution/district_distribution_metrics_best.png)
+![Đồ thị District Coverage](district_distribution_metrics.png)
+![Đồ thị Lognormal vs SPL Cấp Quận](district_distribution_metrics_best.png)
 
 ***Nhận xét:*** 
 Ở cả 5 Quận, SPL bao trùm điểm KS-Test rất lùn và đánh bại mọi cấu trúc dư thừa, đoạt cúp mượt mà nhất trong ma trình định lý Bayesian. 
@@ -60,7 +60,7 @@ Lúc này, Lognormal chính thức bị loại khỏi cuộc đua Top 1 do thi�
 
 Dải dữ liệu chia vào giỏ chuẩn: `<1km, 1-10km, 10-100km`. Khoảng cách lệch hình học EMD (Wasserstein Distance) đạt ngưỡng chói sáng: **Chỉ cách biệt 0.05 đến 0.11**. RMSE/MAE được bảo chứng.
 
-![Sự bắt sóng giữa SPL và Facebook Mobility](/Users/nguyenquocthinh/Documents/test-probability-distribution/fb_vs_pl_best.png)
+![Sự bắt sóng giữa SPL và Facebook Mobility](fb_vs_pl_best.png)
 
 ***Nhận xét:*** 
 Biểu đồ 4 cột (thể hiện P_fb, P_gt và P_pl) theo sát nhau như những người anh em sinh ba. Điểm sụt cục bộ của SPL xuất hiện rất lắt nhắt ở khoảng nhỏ nhưng nhìn chung lượng thể tích khối lưu chuyển liên vùng (từ 1 đến 10km) được SPL (Đỏ) bám rất hoàn mĩ vào cột Facebook (Xanh). 
