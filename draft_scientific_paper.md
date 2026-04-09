@@ -244,12 +244,12 @@ Sự nhất quán ở tầm xa trung bình và dài xác nhận dữ liệu GT l
 
 **Table 7.** Goodness-of-fit for Mobility Efficiency $\Phi(d_j)$ (Global and District-level).
 
-| Scale / Region             | $R^2$ (Lognormal) | $R^2$ (SPL) |
-|----------------------------|-------------------|-------------|
-| **Global (43 bins)**       | **0.9769**        | 0.9768      |
-| **Mean (5 Districts)**     | **0.8071**        | **0.7385**  |
+| Scale / Region | $R^2$ (LN) | $BIC$ (LN) | $R^2$ (SPL) | $BIC$ (SPL) | $R^2$ (Exp) | $BIC$ (Exp) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Global (43 bins)** | **0.9769** | 44.6M | 0.9768 | **42.1M** | 0.9655 | 64.8M |
+| **Mean (5 Districts)** | **0.8071** | 10.1M | 0.7385 | **9.6M** | 0.7429 | 12.4M |
 
-Sau khi khử sức hút hạ tầng, **Lognormal** quay trở lại vị trí dẫn đầu ($R^2=0.8071$ vs $SPL=0.7385$).
+Mặc dù **Lognormal** dẫn đầu về $R^2$ (độ khớp hình học), nhưng **Shifted Power-Law (SPL)** lại chiến thắng về tiêu chuẩn **BIC** sau khi chuẩn hóa POI. Điều này cho thấy SPL có khả năng mô tả phân phối xác suất hiệu suất di chuyển ổn định hơn, đặc biệt là ở các khoảng cách xa nơi tàn dư của cấu trúc đô thị vẫn còn ảnh hưởng.
 
 ![POI Attraction Analysis](poi_attraction_analysis.png)
 *Hình 4. Hiệu suất di chuyển $\Phi(d)$ sau khi chuẩn hóa theo POIs.*

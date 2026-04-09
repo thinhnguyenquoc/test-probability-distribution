@@ -51,15 +51,18 @@ def lognormal_dist(r, C, mu, sigma):
 def shift_power_law(r, C, r0, alpha):
     return C * (r + r0)**(-alpha)
 
+def exp_dist(r, C, lam):
+    return C * np.exp(-r / lam)
+
 # Fit both P(d) and Efficiency Phi(d)
 x = bin_centers.values
 y_prob = prob_d.values
 y_eff = efficiency_d.values
 
-# Lognormal fit on Phi(d)
+# Fitting
 popt_log_eff, _ = curve_fit(lognormal_dist, x, y_eff, p0=[1, 1, 1], maxfev=10000)
-# SPL fit on Phi(d)
 popt_spl_eff, _ = curve_fit(shift_power_law, x, y_eff, p0=[1, 1, 1.5], maxfev=10000)
+popt_exp_eff, _ = curve_fit(exp_dist, x, y_eff, p0=[1, 5], maxfev=10000)
 
 # Calculate metrics for Phi(d)
 def get_metrics(y_true, y_pred, k, n):
@@ -76,8 +79,25 @@ def get_metrics(y_true, y_pred, k, n):
     return round(r2, 4), round(ks_stat, 4), round(rmse, 6)
 
 n = len(x)
+N_total = df['COUNT'].sum()
+
+def calculate_bic(y_true, y_pred, k, n_total):
+    y_pred_norm = y_pred / np.sum(y_pred)
+    ll = np.sum((y_true * n_total) * np.log(np.clip(y_pred_norm, 1e-300, 1)))
+    return k * np.log(n_total) - 2 * ll
+
 r2_log_eff, ks_log_eff, rmse_log_eff = get_metrics(y_eff, lognormal_dist(x, *popt_log_eff), 3, n)
 r2_spl_eff, ks_spl_eff, rmse_spl_eff = get_metrics(y_eff, shift_power_law(x, *popt_spl_eff), 3, n)
+r2_exp_eff, ks_exp_eff, rmse_exp_eff = get_metrics(y_eff, exp_dist(x, *popt_exp_eff), 2, n)
+
+bic_log_eff = calculate_bic(y_eff, lognormal_dist(x, *popt_log_eff), 3, N_total)
+bic_spl_eff = calculate_bic(y_eff, shift_power_law(x, *popt_spl_eff), 3, N_total)
+bic_exp_eff = calculate_bic(y_eff, exp_dist(x, *popt_exp_eff), 2, N_total)
+
+print(f"Global Efficiency Results:")
+print(f"Lognormal: R2={r2_log_eff}, BIC={bic_log_eff:,.0f}")
+print(f"SPL: R2={r2_spl_eff}, BIC={bic_spl_eff:,.0f}")
+print(f"Exponential: R2={r2_exp_eff}, BIC={bic_exp_eff:,.0f}")
 
 print(f"Lognormal: R2={r2_log_eff}, KS={ks_log_eff}, RMSE={rmse_log_eff}")
 print(f"SPL: R2={r2_spl_eff}, KS={ks_spl_eff}, RMSE={rmse_spl_eff}")

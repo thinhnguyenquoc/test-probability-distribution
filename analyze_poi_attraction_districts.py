@@ -40,6 +40,9 @@ def shift_power_law(r, C, r0, alpha):
 def get_r2(y_true, y_pred):
     return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
 
+def exp_dist(r, C, lam):
+    return C * np.exp(-r / lam)
+
 # 6. Analyze per District
 districts = df['origin_district'].unique()
 results = []
@@ -63,7 +66,6 @@ for i, dist in enumerate(districts):
     hist_trips, _ = np.histogram(distances, bins=bins, weights=counts)
     hist_pois, _ = np.histogram(distances, bins=bins, weights=pois)
     bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_widths = bins[1:] - bins[:-1]
     
     mask = (hist_trips > 0) & (hist_pois > 0)
     if mask.sum() < 6: continue
@@ -73,29 +75,47 @@ for i, dist in enumerate(districts):
     y_eff /= y_eff.sum() # Normalize
     
     try:
-        # Improved initial guesses
         popt_log, _ = curve_fit(lognormal_dist, x, y_eff, p0=[1, np.mean(np.log(x)), np.std(np.log(x))], maxfev=40000)
         popt_spl, _ = curve_fit(shift_power_law, x, y_eff, p0=[1, 0.5, 2], bounds=([0, 1e-4, 0.1], [np.inf, 10, 10]), maxfev=40000)
+        popt_exp, _ = curve_fit(exp_dist, x, y_eff, p0=[1, 5], maxfev=40000)
         
         r2_log = get_r2(y_eff, lognormal_dist(x, *popt_log))
         r2_spl = get_r2(y_eff, shift_power_law(x, *popt_spl))
+        r2_exp = get_r2(y_eff, exp_dist(x, *popt_exp))
         
+        # Calculate BIC for standardized comparison
+        # Treat N as the total trips in the district to give statistical weight
+        N_trips = sub_df['COUNT'].sum()
+        
+        def calculate_bic(y_true, y_pred, k, n_total):
+            y_pred_norm = y_pred / np.sum(y_pred)
+            ll = np.sum((y_true * n_total) * np.log(np.clip(y_pred_norm, 1e-300, 1)))
+            return k * np.log(n_total) - 2 * ll
+
+        bic_log = calculate_bic(y_eff, lognormal_dist(x, *popt_log), 3, N_trips)
+        bic_spl = calculate_bic(y_eff, shift_power_law(x, *popt_spl), 3, N_trips)
+        bic_exp = calculate_bic(y_eff, exp_dist(x, *popt_exp), 2, N_trips)
+
         results.append({
             'district_id': dist,
             'district_name': dist_names.get(dist, dist),
             'r2_log': round(r2_log, 4),
-            'r2_spl': round(r2_spl, 4)
+            'r2_spl': round(r2_spl, 4),
+            'r2_exp': round(r2_exp, 4),
+            'bic_log': bic_log,
+            'bic_spl': bic_spl,
+            'bic_exp': bic_exp
         })
         
         # Plot
         ax = axes[i]
         ax.scatter(x, y_eff, color='black', alpha=0.5, label='Efficiency Phi(d)')
-        ax.plot(x, lognormal_dist(x, *popt_log), 'g-', label=f'Lognormal (R2={r2_log:.3f})')
-        ax.plot(x, shift_power_law(x, *popt_spl), 'b--', label=f'Shifted PL (R2={r2_spl:.3f})')
-        ax.set_title(f"District: {dist_names.get(dist, dist)}")
+        ax.plot(x, lognormal_dist(x, *popt_log), 'g-', label='LN')
+        ax.plot(x, shift_power_law(x, *popt_spl), 'b--', label='SPL')
+        ax.plot(x, exp_dist(x, *popt_exp), 'r:', label='Exp')
+        ax.set_title(f"{dist_names.get(dist, dist)}")
         ax.set_xscale('log')
         ax.set_yscale('log')
-        ax.set_xlabel('Distance (km)')
         ax.legend(fontsize=8)
         
     except Exception as e:
