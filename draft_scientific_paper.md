@@ -7,7 +7,7 @@ date: "April 2026"
 # Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
-Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông dụng phù hợp với hành vi và cấu trúc hạ tầng tại Singapore. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn đa mục đích của cá thể. Ở cấp độ vĩ mô (district), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự lấn át của phân phối **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d_j)$) đạt độ khớp $R^2 = 0.9769$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông dụng phù hợp với hành vi và cấu trúc hạ tầng tại Singapore. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn đa mục đích của cá thể. Ở cấp độ vĩ mô (district), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự lấn át của phân phối **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d_j)$ ) đạt độ khớp $R^2 = 0.9769$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
 
 ## Nomenclature (Ký hiệu và Từ viết tắt)
 
@@ -85,9 +85,9 @@ $$A(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{POI}(O,K)$$
 
 $$\Phi(d_j) = \frac{T(d_j)}{A(d_j)}$$
 
-$  T(d_j)  $: Tổng số chuyến đi (trips) của tất cả các cặp nguồn–đích $  (O,K)  $ có khoảng cách rơi vào bin $  d_j  $.
-$  A(d_j)  $: Tổng số POI (Points of Interest) của các subzone đích $  K  $ trong cùng bin khoảng cách $  d_j  $.
-$  \Phi(d_j)  $: Hiệu suất di chuyển của bin $  d_j  $, cho phép tách biệt “lực ma sát” của khoảng cách khỏi “lực hút” của mật độ hạ tầng.
+$T(d_j)$: Tổng số chuyến đi (trips) của tất cả các cặp nguồn–đích $(O,K)$ có khoảng cách rơi vào bin $d_j$.
+$A(d_j)$: Tổng số POI (Points of Interest) của các subzone đích $K$ trong cùng bin khoảng cách $d_j$.
+$\Phi(d_j)$: Hiệu suất di chuyển của bin $d_j$, cho phép tách biệt “lực ma sát” của khoảng cách khỏi “lực hút” của mật độ hạ tầng.
 
 ### 3.1. Block Bootstrap với District-Blocks
 
