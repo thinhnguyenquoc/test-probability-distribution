@@ -168,30 +168,12 @@ Kết quả EMD thấp nhất (0.05) của SPL tại các dải hành trình dà
 | 0 – 5.0 km      | 0.7234            | 0.8456     | SPL     | 89%             |
 | 0 – 10.0 km     | 0.6543            | 0.8876     | SPL     | 98%             |
 
-**Phát hiện Chính**: **Ngưỡng chuyển pha xảy ra tại d ≈ 2.5–3.0 km** (chứa 68–75% tất cả chuyến đi). Điều này rõ ràng hơn các con số mơ hồ "<2km" và ">5km" trong các phát hiện trước.
+**Phát hiện Chính**: **Ngưỡng chuyển pha xảy ra tại d ≈ 2.5–3.0 km** (chứa 68–75% tất cả chuyến đi).
 
 ![Threshold Transition Curve](threshold_transition.png)
 *Hình 3. Đồ thị R² vs khoảng cách tích lũy. Đường Lognormal (đỏ) chiếm ưu thế từ 0 đến ~2.5 km, sau đó SPL (xanh) tiếp quản. Giao điểm định nghĩa "ranh giới" giữa hành vi cá nhân và sức hút hạ tầng.*
 
-### 4.6. Biến động Theo Giờ (Temporal Variation)
 
-Để kiểm tra xem ngưỡng chuyển pha có ổn định theo thời giờ, chúng tôi Chi ra dữ liệu thành ba nhóm:
-- **Peak Hours** (7–9 AM, 5–7 PM): Di chuyển tập trung vào các trung tâm làm việc
-- **Off-Peak** (10 AM – 4 PM): Di chuyển phân tán hơn
-- **Night** (8 PM – 6 AM): Di chuyển cực tiểu
-
-**Table 6.** Threshold $d^*$ and model dominance by time period.
-
-| Time Period | Threshold $d^*$ (km) | Lognormal Winning Range | SPL Winning Range | Peak POI Attraction |
-|-------------|---------------------|-------------------------|-------------------|-------------------|
-| Peak Hours  | 2.3 ± 0.2           | 0 – 2.3 km              | 2.3+ km           | +45% vs off-peak  |
-| Off-Peak    | 2.8 ± 0.3           | 0 – 2.8 km              | 2.8+ km           | Baseline          |
-| Night       | 3.2 ± 0.4           | 0 – 3.2 km              | 3.2+ km           | -30% vs off-peak  |
-
-**Giải thích**: Trong **Peak Hours**, sức hút của các trung tâm làm việc kéo ngưỡng chuyển pha xuống **2.3 km** (mọi người sẵn sàng đi xa hơn). Vào **Night**, mọi người ưu tiên ở gần nhà, ngưỡng kéo dài đến **3.2 km**. Điều này khẳng định rằng **ngưỡng chuyển pha không phải là hằng số vật lý, mà phụ thuộc vào "mối thu hút" của môi trường đô thị tại thời điểm đó**.
-
-![Temporal Variation of Threshold](temporal_threshold.png)
-*Hình 4. Ngưỡng chuyển pha $d^*$ dịch chuyển theo giờ trong ngày. Peak Hours: 2.3 km, Night: 3.2 km. Khác biệt 0.9 km phản ánh tác động của POI density trong các thời kỳ khác nhau.*
 
 ## 5. Discussion: From Individual Behavior to Urban Gravity
 
@@ -202,17 +184,6 @@ Sự chuyển dịch phân phối phản ánh một nhận định dứt khoát 
 - **Cấp độ hệ thống (Vĩ mô):** Các trung tâm trọng điểm (CBD, Jurong East, Tampines) bẻ cong ý chí cá nhân. Quy hoạch đa cực (Polycentric) và mạng lưới MRT dày đặc giúp sức hút trung tâm lan tỏa bền vững theo quy luật lũy thừa (**SPL**).
 
 **Nguyên nhân Chuyển pha**: Ở quy mô vi mô, các quyết định di chuyển bị chi phối bởi **tối ưu hoá cục bộ** (tìm nhà hàng gần nhất, chợ gần nhất). Khi mở rộng, **lực hút toàn cục** từ các trung tâm hạ tầng dày đặc (lũy thừa từ vị trí) lấn át thói quen cá nhân.
-
-### 5.2. Tính Tổng quát hóa (Generalizability) và So sánh Liên Thành phố
-
-Mặc dù nghiên cứu này tập trung vào Singapore, các cơ chế chuyển pha Lognormal ↔ SPL dự kiến xảy ra ở các **thành phố compact có polycentrism cao**: Hong Kong, Barcelona, Tokyo.
-
-**Giả thuyết Tính Tổng quát**:
-1. **Hong Kong** (diện tích 1104 km², mật độ 7500 người/km²): Dự kiến ngưỡng **d* ≈ 2.0–2.5 km** (cao hơn Singapore vì núi non hạn chế chuyện đi).
-2. **Barcelona** (diện tích 101 km², mật độ 16000 người/km²): Dự kiến ngưỡng **d* ≈ 1.5–2.0 km** (thấp hơn vì diện tích nhỏ, mật độ cao).
-3. **Tokyo** (diện tích 2194 km², mật độ 6000 người/km²): Có thể **d* ≈ 3.0–3.5 km** vì diện tích lớn nhưng vẫn có polycentric hubs mạnh.
-
-Khác với các **thành phố monocentric lớn** (V.d., Luân Đôn, Paris) nơi SPL chiếm ưu thế ngay từ khoảng cách 1–2 km do một trung tâm duy nhất quá mạnh.
 
 ### 5.3. Hàm Ý Chính Sách (Policy Implications)
 
@@ -233,40 +204,18 @@ Nghiên cứu khẳng định quy luật di chuyển tại Singapore là **phụ
 
 4. **Chuẩn hóa theo POI**: Sau khi khử sức hút hạ tầng ($\Phi(d) = P(d)/A(d)$), Lognormal lại chiếm ưu thế ($R^2$ = 0.81 vs SPL = 0.74), chứng minh Lognormal thể hiện **hành vi tiềm ẩn** của cá nhân, SPL chỉ là **biểu hiện ngoài** do hạ tầng.
 
-5. **Ổn định Thời gian**: Ngưỡng dịch chuyển nhẹ (2.3 km peak → 3.2 km night), khẳng định độ tin cậy của mô hình.
-
 **Đóng góp Chính**: Kỳ phân khoa học đầu tiên tách rõ "hành vi cá nhân" khỏi "sức hút hạ tầng" thông qua POI normalization. Các kết quả mở rộng lý thuyết Lévy Flight truyền thống cho các thành phố compact với quy hoạch đa cực.
 
 ### 6.1. Hạn Chế (Limitations)
 
 1. **Kích Cỡ Mẫu Macro-scale**: n = 5 quận là nhỏ. Kết quả được xác thực bằng bootstrap và cross-validation, nhưng vẫn cần thêm dữ liệu từ các thành phố khác.
 
-2. **Độ Lệch Dữ liệu Facebook**: Underestimate chuyến đi MRT (~10–15%). Dữ liệu LTA chưa được bao gồm (đang yêu cầu).
+2. **Không Phân biệt Chế độ Giao thông**: Phân tích tổng hợp (xe hơi + MRT + đi bộ). Các chế độ khác nhau có thể có các phân phối khác nhau.
 
-3. **Không Phân biệt Chế độ Giao thông**: Phân tích tổng hợp (xe hơi + MRT + đi bộ). Các chế độ khác nhau có thể có các phân phối khác nhau.
-
-4. **POI Weighting Đơn Giản**: Các trọng số $w_i$ áp dụng bình đẳng theo khu vực. Trong thực tế, một MRT hub có sức hút khác với một cửa hàng nhỏ.
-
-5. **Không Tính Năng Động Hạ Tầng**: POI cố định. Khi mở trung tâm mua sắm mới, ngưỡng $d^*$ có thể dịch chuyển.
+3. **POI Weighting Đơn Giản**: Các trọng số $w_i$ áp dụng bình đẳng theo khu vực. Trong thực tế, một MRT hub có sức hút khác với một cửa hàng nhỏ.
 
 ---
-## Appendix A: POI Classification and Weighting Scheme
-
-### A.1. POI Categories and Relative Weights
-
-Dữ liệu từ **OpenStreetMap (OSM)** được phân loại thành 6 nhóm chính. Trọng số $w_i$ được xác định dựa trên **mật độ tương đối** và **sức hút hành trình trung bình** trong mỗi loại:
-
-| POI Category      | OSM Tags                       | Count (Singapore) | Relative Weight $w_i$ | Justification                              |
-|-------------------|--------------------------------|-------------------|-----------------------|--------------------------------------------|
-| **Transport**     | railway, bus_station, airport  | 1,245             | **0.35**              | Highest trip attraction (MRT hubs)        |
-| **Retail**        | supermarket, mall, shop        | 5,890             | **0.20**              | Daily necessity, frequent visits          |
-| **Food & Leisure**| restaurant, cafe, park, gym    | 8,340             | **0.15**              | Discretionary, lower trip frequency       |
-| **Healthcare**    | hospital, clinic, pharmacy     | 2,180             | **0.15**              | Essential but less frequent               |
-| **Work**          | office, industrial_zone        | 3,450             | **0.10**              | High concentration, long-range attraction |
-| **Education**     | school, university             | 890               | **0.05**              | Specific demographic (students only)      |
-| **TOTAL**         |                                | **22,000+**       | **1.00**              |                                            |
-
-### A.2. Distance Calculation Method
+## Appendix A: Distance Calculation Method
 
 Khoảng cách giữa các subzones được tính **dọc theo mạng lưới đường đi thực tế** (network distance) từ **OpenStreetMap road network**, không phải đường chim bay (Euclidean). Quá trình:
 
@@ -283,6 +232,7 @@ Với mỗi khoảng cách bin $[r_k, r_{k+1}]$, mật độ POI tính theo côn
 $$A(r_k) = \sum_{i=1}^{6} w_i \cdot \left[ \sum_{p \in \text{POI}_i} \mathbb{1}_{r_k \leq d(p) < r_{k+1}} \right]$$
 
 Trong đó:
+- $w_i$ = trọng số của loại POI $i$ (mặc định bằng 1)
 - $\text{POI}_i$ = tất cả POI thuộc loại $i$
 - $d(p)$ = khoảng cách mạng lưới từ origin đến POI $p$
 - $\mathbb{1}$ = indicator function
