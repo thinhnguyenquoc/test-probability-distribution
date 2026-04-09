@@ -36,7 +36,7 @@ Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông 
 - **$R^2$**: Hệ số xác định (Coefficient of determination), thể hiện tỷ lệ phương sai giải thích được
 - **KS-stat**: Kolmogorov-Smirnov statistic (Khoảng cách cực đại giữa hàm phân phối tích lũy của dữ liệu và mô hình)
 - **EMD**: Earth Mover's Distance (Khoảng cách Wasserstein) đánh giá độ lệc phân phối
-- **GT**: Ground Truth (Dữ liệu thẻ giao thông thông minh nội bộ làm chuẩn)
+- **GT**: Ground Truth (Dữ liệu di chuyển đa nguồn đã chuẩn hóa làm chuẩn)
 - **FB**: Facebook Mobility Data (Dữ liệu xác thực ngoại biên)
 
 ## 2. Introduction & Hypothesis
@@ -77,7 +77,11 @@ Tiêu chuẩn đánh giá:
 - **$R^2$**: Tỷ lệ phương sai giải thích
 - **KS-statistic**: Kiểm định Kolmogorov-Smirnov
 
-Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d_j)$. Khoảng cách được chia thành **50 bins đều nhau** từ 0.1 km đến 50 km ($\Delta d \approx 1$ km). Với mỗi bin $d_j$:
+Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d_j)$. Khoảng cách được chia thành **50 bins đều nhau** từ 0.1 km đến 50 km ($\Delta d \approx 1$ km).
+
+**Lưu ý về tập dữ liệu:** Mặc dù hệ thống phân vùng của Singapore bao gồm **323 subzones**, nghiên cứu này chỉ tập trung phân tích trên **303 subzones** có dữ liệu di chuyển thực tế. 20 subzones còn lại (bao gồm các đảo phía Tây/Nam, khu vực huấn luyện quân sự và các vùng đệm chưa quy hoạch dân cư) không ghi nhận chuyến đi đáng kể trong tập dữ liệu Ground Truth đa nguồn, do đó được loại bỏ để đảm bảo tính nhất quán của các ước lượng thống kê.
+
+Với mỗi bin $d_j$:
 
 $$T(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{T}(O,K)$$ 
 
@@ -114,7 +118,7 @@ Các subzone không độc lập về mặt không gian — các subzone lân c�
 - Sử dụng thuật toán **Agglomerative Clustering** với ràng buộc **Connectivity matrix** (dựa trên ma trận tiếp giáp không gian của 303 subzones). Ràng buộc này đảm bảo các subzone trong cùng một nhóm phải chạm nhau về mặt địa lý, tạo thành một vùng duy nhất.
 - Thuật toán ưu tiên sự cân bằng về số lượng subzone và tối ưu hóa khoảng cách nội cụm (linkage strategy: complete).
 
-Việc phân chia này tạo ra các thực thể địa lý có kích thước lớn hơn subzone (~7.5 subzones/group) nhưng nhỏ hơn district (~60.6 subzones/district), cho phép quan sát sự "mờ dần" của thói quen cá nhân và sự "hiện rõ" của lực hấp dẫn đô thị.
+Việc phân chia này tạo ra các thực thể địa lý có kích thước lớn hơn subzone (~7.5 subzones/group) nhưng nhỏ hơn district (~60.6 subzones/district). Ngoài ra, chúng tôi cũng thực hiện khảo sát trên **toàn bộ Singapore** (City-wide) để hoàn tất bức tranh chuyển dịch đa quy mô.
 
 ![Bản đồ 40 khu vực địa lý Singapore](singapore_40_regions.png)
 *Hình 1. Phân vùng Singapore thành 40 nhóm trung gian dựa trên sự liền kề không gian và ranh giới district.*
@@ -162,21 +166,21 @@ SPL chiếm ưu thế về độ khớp hình học (KS-stat thấp nhất) và 
 
 Khi thực hiện fitting cho 40 nhóm trung gian (n=40, chia nhỏ từ districts), kết quả cho thấy một bức tranh chuyển dịch liền mạch về cả độ khớp ($R^2$) và tiêu chuẩn thông tin (BIC).
 
-**Table 3.** Comparison of model performance across three spatial scales (BIC Best % and Mean $R^2$).
+**Table 3.** Comparison of model performance across four spatial scales (BIC Best % and Mean $R^2$).
 
-| Model | Subzone (n=303) | | 40 Groups (n=40) | | District (n=5) | |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** |
-| **Lognormal** | **28.05%** | **0.8199** | **20.6%** | **0.8370** | 0.0% | **0.9307** |
-| **SPL** | 28.05% | 0.6998 | 8.8% | 0.7739 | **40.0%** | 0.8987 |
-| Gamma | 24.09% | 0.8022 | 38.2% | 0.8289 | 20.0% | 0.8965 |
-| Exponential | 16.50% | 0.6919 | 26.5% | 0.7653 | 40.0% | 0.8882 |
-| TLF | 3.30% | 0.7026 | 5.9% | 0.7774 | 0.0% | 0.8987 |
+| Model | Subzone (n=303) | | 40 Groups (n=40) | | District (n=5) | | Global (n=1) | |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** |
+| **Lognormal** | **28.05%** | **0.8199** | **20.6%** | **0.8370** | 0.0% | **0.9307** | 0.0% | **0.9286** |
+| **SPL** | 28.05% | 0.6998 | 8.8% | 0.7739 | **40.0%** | 0.8987 | 0.0% | 0.7820 |
+| Gamma | 24.09% | 0.8022 | **38.2%** | 0.8289 | 20.0% | 0.8965 | 0.0% | 0.8532 |
+| Exponential | 16.50% | 0.6919 | 26.5% | 0.7653 | **40.0%** | 0.8882 | **100.0%** | 0.7856 |
+| TLF | 3.30% | 0.7026 | 5.9% | 0.7774 | 0.0% | 0.8987 | 0.0% | - |
 
 **Phân tích sự chuyển dịch:**
-- **Độ khớp ($R^2$)**: Cả 5 mô hình đều có xu hướng tăng $R^2$ khi quy mô gom nhóm tăng lên (từ Subzone → District). Điều này do việc gom nhóm lớn giúp triệt tiêu các nhiễu thống kê ở cấp độ cá thể. Lognormal luôn giữ $R^2$ cao nhất ở mọi quy mô.
-- **Tiêu chuẩn BIC**: Mặc dù $R^2$ cao, tỉ lệ thắng theo BIC của Lognormal giảm dần (**28% → 20% → 0%**). Ngược lại, SPL bắt đầu chiếm ưu thế ở quy mô vĩ mô (40%).
-- **Cấp độ Intermediate (40 Groups)**: Cho thấy trạng thái quá độ rõ rệt nơi Lognormal vẫn còn hiệu quả đáng kể nhưng các mô hình Gamma/Exp bắt đầu trỗi dậy mạnh mẽ nhất (64.7%).
+- **Độ khớp ($R^2$)**: Giá trị $R^2$ của Lognormal luôn duy trì ở mức cao nhất (>0.81) tại mọi quy mô, cho thấy khả năng mô tả hình dạng phân phối rất tốt. Tuy nhiên, khi quy mô tăng tới mức toàn thành phố, $R^2$ của các mô hình khác (SPL, Exp) bắt đầu giảm nhẹ do sự phức tạp của việc gộp toàn bộ các luồng di chuyển đa dạng.
+- **Tiêu chuẩn BIC**: Chế độ "thắng" của BIC chuyển dịch rõ rệt: **Subzone (LN) → 40 Groups (Gamma) → District (SPL/Exp) → Global (Exp)**.
+- **Cấp độ Toàn thành phố (Global)**: Mô hình Exponential chiếm ưu thế tuyệt đối về BIC. Điều này phản ánh rằng khi nhìn ở bức tranh tổng thể lớn nhất, quy luật suy giảm theo khoảng cách (distance decay) cơ bản trở thành đặc tính chi phối chính, triệt tiêu các đặc tính cục bộ phức tạp.
 
 ![So sánh phân phối 40 nhóm](group_40_distribution_comparison.png)
 *Hình 3. Phân bổ các mô hình tối ưu (BIC) tại quy mô 40 nhóm.*
@@ -222,7 +226,33 @@ Kết quả chuẩn hóa mang lại một phát hiện quan trọng: Nếu như 
 | Central    | 0.3245               |
 | **Mean**   | **0.2643**           |
 
-EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán về hình dạng tổng thể**, xác nhận dữ liệu không bị lệch một cách hệ thống. Lưu ý: Facebook chỉ cung cấp 4 bins rất thô, nên EMD không phù hợp để so sánh chi tiết giữa các mô hình — chỉ dùng làm kiểm tra tính nhất quán nguồn dữ liệu.
+EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán về hình dạng tổng thể**. Tuy nhiên, khi đi sâu vào so sánh từng khu vực, chúng tôi phát hiện những quy luật sai lệch (Sensing Bias) mang tính hệ thống.
+
+**Bảng 5c.** So sánh chi tiết tỉ trọng chuyến đi theo Quận: Facebook vs. Ground Truth (GT).
+
+| District | Bin | GT (%) | FB (%) | Chênh lệch (FB - GT) |
+| :--- | :--- | :---: | :---: | :---: |
+| **Central** | < 1 km | 6.7% | **35.1%** | +28.4% |
+| | 1 - 10 km | **68.5%** | 57.8% | -10.7% |
+| | 10 - 100 km | **17.8%** | 6.7% | -11.1% |
+| **East** | < 1 km | 0.2% | **34.7%** | **+34.5%** |
+| | 1 - 10 km | **62.4%** | 55.1% | -7.3% |
+| | 10 - 100 km | **18.8%** | 9.2% | -9.6% |
+| **North** | < 1 km | 4.7% | **33.1%** | +28.4% |
+| | 1 - 10 km | **54.0%** | 50.4% | -3.6% |
+| | 10 - 100 km | **29.2%** | 16.3% | -12.9% |
+| **North-East**| < 1 km | 8.9% | **35.5%** | +26.6% |
+| | 1 - 10 km | **65.2%** | 55.5% | -9.7% |
+| | 10 - 100 km | **14.9%** | 8.8% | -6.1% |
+| **West** | < 1 km | 7.7% | **33.5%** | +25.8% |
+| | 1 - 10 km | **59.4%** | 53.6% | -5.8% |
+| | 10 - 100 km | **21.7%** | 12.8% | -8.9% |
+
+**Phân tích sai lệch hệ thống:**
+- **Tính ổn định của dữ liệu báo cáo của Facebook:** Tỉ lệ chuyến đi cực ngắn (<1km) của Facebook cực kỳ ổn định ở mức **33-35%** tại tất cả các quận. Điều này cho thấy Facebook bắt được các di chuyển ngắn (micro-mobility) hoặc không di chuyển một cách hệ thống trên toàn thành phố, bất kể đặc thù hạ tầng của quận.
+
+
+Sự nhất quán trong các hành trình trung bình và dài, cùng với khả năng giải thích các sai lệch ở tầm ngắn thông qua đặc thù của công nghệ đo lường, khẳng định dữ liệu GT là nguồn đại diện đáng tin cậy để xây dựng mô hình di chuyển tổng thể.
 
 ### 4.6. Phân tích Ngưỡng Chuyển pha (Transition Threshold Analysis)
 
@@ -248,7 +278,7 @@ EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán 
 ![Threshold Transition](threshold_transition.png)
 *Hình 5. $R^2$ theo cửa sổ khoảng cách tích lũy (0–30 km). Lognormal (đỏ) chiếm ưu thế tại mọi cửa sổ, không có giao cắt với SPL (xanh).*
 
-**Phát hiện:** Khác với giả thuyết ban đầu, **không tồn tại ngưỡng chuyển pha $d^*$ rõ ràng** trên trục khoảng cách. Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy (0–30 km, bao phủ 99.9% tổng chuyến đi). Khoảng cách giữa $R^2$ hai mô hình thu hẹp dần từ ~1.0 (tại 0.5 km) xuống ~0.2 (tại 30 km), nhưng không bao giờ giao cắt. Điều này cho thấy sự chuyển dịch từ Lognormal sang SPL (Table 1 → Table 2) không phải do khoảng cách, mà do **cấp độ tổng hợp không gian** (subzone → district). Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được tốt hơn.
+**Phát hiện:** Khác với giả thuyết ban đầu, **không tồn tại ngưỡng chuyển pha $d^*$ rõ ràng** trên trục khoảng cách. Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy (0–30 km, bao phủ 99.9% tổng chuyến đi). Khoảng cách giữa $R^2$ hai mô hình thu hẹp dần từ ~1.0 (tại 0.5 km) xuống ~0.2 (tại 30 km), nhưng không bao giờ giao cắt. Điều này cho thấy sự chuyển dịch từ Lognormal sang SPL (Table 1 → Table 2) không phải do khoảng cách, mà do **cấp độ tổng hợp không gian** (subzone → 40 groups → district → global). Khi gom dữ liệu càng lớn, các đặc tính "tail" (đuôi phân phối) và ma sát khoảng cách tổng thể trở thành yếu tố quyết định.
 
 ## 5. Discussion
 

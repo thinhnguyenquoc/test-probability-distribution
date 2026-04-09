@@ -143,6 +143,16 @@ pipeline:
       data: table5_threshold_analysis.csv
       figures: [threshold_transition.png]
 
+  # ─── GLOBAL ANALYSIS: City-wide scale ───
+  - id: global_analysis
+    report_section: "4.3 (Global column)"
+    status: VERIFIED
+    script: calculate_global_metrics.py
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
+    numbers_in_report:
+      - "Global Best BIC: Exponential"
+      - "Global R² Lognormal: 0.9286"
+
   # ─── FIGURES (không gắn table) ───
   - id: fig_distribution_comparison
     report_section: "2 (Introduction)"
@@ -199,6 +209,9 @@ verification_commands:
     best = m40[m40['Is_Best_BIC']==True]
     print(best['Model'].value_counts() / len(best) * 100)
     "
+
+  table3_global: |
+    python3 /Users/nguyenquocthinh/Documents/test-probability-distribution/calculate_global_metrics.py
 
   table2: |
     python3 -c "
