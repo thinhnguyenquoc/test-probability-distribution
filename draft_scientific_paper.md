@@ -7,7 +7,7 @@ date: "April 2026"
 # Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
-Nghiên cứu này làm rõ bước chuyển dịch của động lực học đô thị từ hành vi cá nhân sang cấu trúc hạ tầng thông qua phân tích 5 mô hình phân phối tại Singapore. Ở cấp độ vi mô (Subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn của cá thể. Ở cấp độ vĩ mô (District), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự thống trị của **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$) đạt độ khớp $R^2 > 0.97$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển phù hợp với hành vi và cấu trúc hạ tầng tại Singapoẻ. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (Subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn của cá thể. Ở cấp độ vĩ mô (District), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự thống trị của **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$ ) đạt độ khớp $R^2 > 0.97$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
 
 ## 2. Introduction & Hypothesis
 Di chuyển con người thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén như Singapore, chúng tôi đặt giả thuyết về một sự chuyển pha dựa trên quy mô quan sát:
@@ -30,10 +30,14 @@ Di chuyển con người thường được coi là tuân theo quy luật phổ 
 ![Distribution Comparison](distribution_comparison.png)
 
 ## 3. Methodology
-Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình: Lognormal, SPL, TLF, Gamma, Exponential. 
+
+Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình: Lognormal, Shifted Power Law, Truncated Lévy Flight, Gamma, Exponential. 
+
 Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d)$:
+
 $$\Phi(d) = \frac{P(d)}{A(d)}$$
-Trong đó $A(d)$ là tổng số điểm tin cậy (POI) hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
+
+Trong đó $A(d)$ là tổng số POI hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
 
 ## 4. Results: The Scale-Transition
 
