@@ -38,10 +38,12 @@ bin_centers = bin_stats['euclidean_distance_km']
 trips = bin_stats['COUNT']
 total_attraction = bin_stats['dest_poi']
 
-# Calculate Probabilities and Efficiencies
-prob_d = trips / trips.sum()
-efficiency_d = trips / total_attraction # T(d) / A(d)
-efficiency_d /= efficiency_d.sum() # Normalize for fitting
+# Calculate Probabilities and Efficiencies (Phi)
+P_d = trips / trips.sum()      # P(d_j)
+A_d = total_attraction         # A(d_j) - POI shell density
+
+efficiency_phi = P_d / A_d      # Phi(d_j) = P(d_j) / A(d_j)
+efficiency_phi /= efficiency_phi.sum() # Normalize for distribution fitting
 
 # 5. Curve Fitting Functions
 def lognormal_dist(r, C, mu, sigma):
@@ -56,8 +58,8 @@ def exp_dist(r, C, lam):
 
 # Fit both P(d) and Efficiency Phi(d)
 x = bin_centers.values
-y_prob = prob_d.values
-y_eff = efficiency_d.values
+y_prob = P_d.values
+y_eff = efficiency_phi.values
 
 # Fitting
 popt_log_eff, _ = curve_fit(lognormal_dist, x, y_eff, p0=[1, 1, 1], maxfev=10000)
@@ -105,28 +107,29 @@ print(f"SPL: R2={r2_spl_eff}, KS={ks_spl_eff}, RMSE={rmse_spl_eff}")
 # 6. Plotting
 plt.figure(figsize=(15, 6))
 
-# Plot 1: Probability vs Efficiency
+# Plot 1: Probability vs Efficiency (Phi)
 plt.subplot(1, 2, 1)
-plt.scatter(bin_centers, prob_d, label='P(d) - Observed Prob.', alpha=0.6)
-plt.scatter(bin_centers, efficiency_d, label='Phi(d) - Efficiency P(d)/A(d)', marker='x', color='red')
+plt.scatter(bin_centers, P_d, label='$P(d)$ - Observed Prob.', alpha=0.6)
+plt.scatter(bin_centers, efficiency_phi, label='$\Phi(d)$ - Mobility Efficiency', marker='x', color='red')
 plt.xscale('log')
 plt.yscale('log')
-plt.xlabel('Distance (km)')
+plt.xlabel('Distance $d$ (km)')
 plt.ylabel('Density / Intensity')
-plt.title('Comparison: Observed Prob. vs Mobility Efficiency')
+plt.title('Comparison: $P(d)$ vs Mobility Efficiency $\Phi(d)$')
 plt.legend()
 plt.grid(True, which="both", ls="-", alpha=0.2)
 
-# Plot 2: Fitting on Efficiency
+# Plot 2: Fitting on Efficiency (Phi)
 plt.subplot(1, 2, 2)
-plt.scatter(x, y_eff, color='black', alpha=0.3, label='Efficiency Data')
-plt.plot(x, lognormal_dist(x, *popt_log_eff), 'g-', label=f'Lognormal (R2={r2_log_eff:.3f})')
-plt.plot(x, shift_power_law(x, *popt_spl_eff), 'b--', label=f'Shifted PL (R2={r2_spl_eff:.3f})')
+plt.scatter(x, y_eff, color='black', alpha=0.3, label='$\Phi(d)$ Data')
+plt.plot(x, lognormal_dist(x, *popt_log_eff), 'g-', label=f'LN ($R^2$={r2_log_eff:.3f})')
+plt.plot(x, shift_power_law(x, *popt_spl_eff), 'b--', label=f'SPL ($R^2$={r2_spl_eff:.3f})')
+plt.plot(x, exp_dist(x, *popt_exp_eff), 'r:', label=f'Exp ($R^2$={r2_exp_eff:.3f})')
 plt.xscale('log')
 plt.yscale('log')
-plt.xlabel('Distance (km)')
-plt.ylabel('Mobility Efficiency Phi(d)')
-plt.title('Log-Log Fit of Mobility Efficiency (POI weighted)')
+plt.xlabel('Distance $d$ (km)')
+plt.ylabel('Mobility Efficiency $\Phi(d)$')
+plt.title('Log-Log Fit of Mobility Efficiency $\Phi(d)$')
 plt.legend()
 plt.grid(True, which="both", ls="-", alpha=0.2)
 
@@ -137,8 +140,8 @@ print("Analysis complete. Results saved to 'poi_attraction_analysis.png'")
 # Output CSV for paper
 res_df = pd.DataFrame({
     'distance_km': bin_centers,
-    'observed_prob': prob_d,
+    'observed_prob': P_d,
     'attraction_A': total_attraction,
-    'efficiency_phi': efficiency_d
+    'efficiency_phi': efficiency_phi
 })
 res_df.to_csv('poi_analysis_results.csv', index=False)

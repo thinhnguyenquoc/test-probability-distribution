@@ -143,103 +143,59 @@ pipeline:
       data: table5_threshold_analysis.csv
       figures: [threshold_transition.png]
 
-  # ─── GLOBAL ANALYSIS: City-wide scale ───
-  - id: global_analysis
-    report_section: "4.3 (Global column)"
+  # ─── TABLE 4: Global Analysis (City-wide scale) ───
+  - id: table4_global
+    report_section: "4.4"
+    report_table: "Table 4"
     status: VERIFIED
     script: calculate_global_metrics.py
     inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
+    outputs:
+      numbers: [R2, BIC, KS-stat]
+      models: [Exponential, Lognormal, Gamma, SPL, TLF]
     numbers_in_report:
-      - "Global Best BIC: Exponential"
-      - "Global R² Lognormal: 0.9286"
+      - "Global Winner: Exponential (BIC=39.0M, KS=0.0698)"
+      - "Global TLF: BIC=39.1M"
 
-  # ─── FIGURES (không gắn table) ───
-  - id: fig_distribution_comparison
-    report_section: "2 (Introduction)"
+  # ─── TABLE 7: POI Efficiency Φ(d) ───
+  - id: table7_efficiency
+    report_section: "4.7"
+    report_table: "Table 7"
     status: VERIFIED
-    script: distribute_curve.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
+    scripts: [analyze_poi_attraction.py, analyze_poi_attraction_districts.py]
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson]
     outputs:
-      figures: [distribution_comparison.png]
+      data: [poi_analysis_results.csv, district_poi_results.csv]
+      figures: [poi_attraction_analysis.png, district_poi_analysis.png]
+    numbers_in_report:
+      - "Mean R²_LN (POI Normalization) = 0.8071"
+      - "Winner BIC (Efficiency): Shifted Power-Law (Global=42.1M, District=9.6M)"
 
-  - id: fig_bic_illustration
-    report_section: "4.2"
+  # ─── TABLE 8: Threshold Analysis ───
+  - id: table8_threshold
+    report_section: "4.8"
+    report_table: "Table 8"
     status: VERIFIED
-    script: plot_bic_logic_illustration.py
-    inputs: [district_distribution_metrics.csv]
+    script: generate_table5_threshold_analysis.py
     outputs:
-      figures: [bic_logic_illustration.png]
-
-# =========================================
-# CÁC SCRIPT/FILE CÒN LẠI KHÔNG DÙNG
-# =========================================
-unused_files:
-  scripts:
-    - file: compare_fb_pl.py
-      desc: "Phiên bản cũ: chỉ so sánh SPL vs Facebook"
-      output: [fb_vs_pl.csv, fb_vs_pl.png, fb_vs_pl_best.png]
-      reason: "Thay bằng compare_fb_all_models.py (5 mô hình) và rút gọn thành data validation"
+      data: table5_threshold_analysis.csv
+      figures: [threshold_transition.png]
 
 # =========================================
 # KIỂM CHỨNG NHANH (cho LLM)
 # =========================================
 verification_commands:
-  table1_values: |
-    python3 -c "
-    import pandas as pd
-    z = pd.read_csv('zone_distribution_metrics.csv')
-    best = z[z['Is_Best_BIC']==True]
-    for m in ['Lognormal','Shifted Power-Law','Gamma','Exponential','Truncated Lévy Flight']:
-      s = z[z['Model']==m]
-      print(f'{m}: BIC={best[best[\"Model\"]==m].shape[0]/len(best)*100:.2f}% R2={s[\"R2\"].mean():.4f} KS={s[\"KS_Stat\"].mean():.4f}')
-    "
+  table1_subzone: |
+    python3 -c "import pandas as pd; z = pd.read_csv('zone_distribution_metrics.csv');
+    print(z.groupby('Model')['R2'].mean())"
 
-  table1_bootstrap: |
-    python3 -c "
-    import pandas as pd
-    ci = pd.read_csv('bootstrap_table1_ci_40groups.csv')
-    print(ci.to_string(index=False))
-    "
+  table4_global: |
+    python3 calculate_global_metrics.py
 
-  table3_scale: |
-    python3 -c "
-    import pandas as pd
-    m40 = pd.read_csv('group_40_distribution_metrics.csv')
-    print(m40.groupby('Model')['R2'].mean())
-    best = m40[m40['Is_Best_BIC']==True]
-    print(best['Model'].value_counts() / len(best) * 100)
-    "
+  table7_efficiency: |
+    python3 -c "import pandas as pd; d = pd.read_csv('district_poi_results.csv');
+    print(f'Mean district R2 LN: {d.r2_log.mean():.4f}');
+    print(f'Mean district BIC SPL: {d.bic_spl.mean()/1e6:.1f}M')"
 
-  table3_global: |
-    python3 /Users/nguyenquocthinh/Documents/test-probability-distribution/calculate_global_metrics.py
-
-  table2: |
-    python3 -c "
-    import pandas as pd
-    d = pd.read_csv('district_distribution_metrics.csv')
-    best = d[d['Is_Best_BIC']==True]
-    for m in ['Shifted Power-Law','Exponential','Gamma','Lognormal','Truncated Lévy Flight']:
-      s = d[d['Model']==m]
-      print(f'{m}: BIC={best[best[\"Model\"]==m].shape[0]/len(best)*100:.1f}% R2={s[\"R2\"].mean():.4f} KS={s[\"KS_Stat\"].mean():.4f}')
-    "
-
-  table3: |
-    python3 -c "
-    import pandas as pd; print(pd.read_csv('district_poi_results.csv').to_string(index=False))
-    "
-
-  table4: |
-    python3 -c "
-    import pandas as pd
-    r = pd.read_csv('fb_vs_all_models.csv')
-    gt = r.drop_duplicates('District')[['District','EMD_GT_vs_FB']]
-    print(gt.to_string(index=False))
-    print(f'Mean: {gt.EMD_GT_vs_FB.mean():.4f}')
-    "
-
-  table5: |
-    python3 -c "
-    import pandas as pd
-    t = pd.read_csv('table5_threshold_analysis.csv')
-    print(t[['Distance_Window_km','R2_Lognormal','R2_SPL','Winner','Percent_Data']].to_string(index=False))
-    "
+  table8_threshold: |
+    python3 generate_table5_threshold_analysis.py
