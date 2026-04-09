@@ -7,10 +7,47 @@ date: "April 2026"
 # Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
-Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông dụng phù hợp với hành vi và cấu trúc hạ tầng tại Singapore. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn đa mục đích của cá thể. Ở cấp độ vĩ mô (district), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự lấn át của phân phối **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$) đạt độ khớp $R^2 = 0.9769$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông dụng phù hợp với hành vi và cấu trúc hạ tầng tại Singapore. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn đa mục đích của cá thể. Ở cấp độ vĩ mô (district), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự lấn át của phân phối **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d_j)$) đạt độ khớp $R^2 = 0.9769$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
+
+## Nomenclature (Ký hiệu và Từ viết tắt)
+
+**Mathematics & Variables:**
+- $r$: Khoảng cách Euclidean di chuyển (km)
+- $d_j$: Khoảng cách ứng với bin thứ $j$
+- $P(r)$: Xác suất xuất hiện chuyến đi tại khoảng cách $r$
+- $O, K$: Subzone xuất phát (Origin) và subzone đích (Destination)
+- $\Phi(d_j)$: Hiệu suất di chuyển (Mobility efficiency) tại khoảng cách $d_j$
+- $T(d_j)$: Tổng số lượng chuyến đi gom theo khoảng cách $d_j$
+- $A(d_j)$: Tổng số lượng điểm thu hút (POI) tại đích đến, gom theo khoảng cách $d_j$
+
+**Model Parameters:**
+- $C$: Hằng số chuẩn hóa xác suất của các mô hình
+- $\mu, \sigma$: Tham số trung giá trị (mean) và độ lệch chuẩn (standard deviation) của Lognormal
+- $r_0, \beta$: Tham số khoảng cách dịch (shift) và số mũ phân kỳ (exponent) của Shifted Power-Law
+- $\lambda$: Tham số phân rã (decay parameter) của Exponential và Gamma
+- $\alpha$: Tham số hình dáng (shape parameter) của Gamma
+- $\kappa$: Tham số giới hạn cắt (truncating constant) của Truncated Lévy Flight
+
+**Abbreviations & Metrics:**
+- **SPL**: Shifted Power-Law
+- **TLF**: Truncated Lévy Flight
+- **POI**: Point of Interest (Điểm tiện ích đô thị từ nguồn OpenStreetMap)
+- **BIC**: Bayesian Information Criterion (Tiêu chuẩn thông tin Bayes để lựa chọn mô hình)
+- **$R^2$**: Hệ số xác định (Coefficient of determination), thể hiện tỷ lệ phương sai giải thích được
+- **KS-stat**: Kolmogorov-Smirnov statistic (Khoảng cách cực đại giữa hàm phân phối tích lũy của dữ liệu và mô hình)
+- **EMD**: Earth Mover's Distance (Khoảng cách Wasserstein) đánh giá độ lệc phân phối
+- **GT**: Ground Truth (Dữ liệu thẻ giao thông thông minh nội bộ làm chuẩn)
+- **FB**: Facebook Mobility Data (Dữ liệu xác thực ngoại biên)
 
 ## 2. Introduction & Hypothesis
-Hành vi di chuyển con người trong đô thị thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén (Compact City) như Singapore, các giả thuyết được đặt ra là:
+### 2.1. Research Gap (Khoảng trống nghiên cứu)
+
+Mặc dù quy luật Truncated Lévy Flight (TLF) được coi là "phổ quát" trong Human Mobility [1, 2], hầu hết các nghiên cứu kinh điển đều tập trung vào các quốc gia có diện tích lớn hoặc các siêu đô thị (Mega-cities) ở phương Tây. Hiện tại:
+- **Thiếu các nghiên cứu tại đô thị cực nén và nhỏ ở Châu Á:** Singapore là một điển hình của đô thị đảo với giới hạn địa lý nghiêm ngặt (~50 km). Nhiều nghiên cứu cho rằng giới hạn này ảnh hưởng trực tiếp đến tham số cắt (truncation) của TLF [5], nhưng ít công trình đi sâu vào sự chuyển dịch mô hình tại đây so với các đô thị phương Tây [8].
+- **Sự phụ thuộc vào hạ tầng chưa được định lượng rõ ràng:** Noulas et al. (2012) [7] đã chỉ ra rằng mật độ điểm đến (POI) có thể thay thế khoảng cách địa lý tuyệt đối trong việc giải thích quy luật di chuyển. Tuy nhiên, việc sử dụng dữ liệu mở (OpenStreetMap) để "khử" nhiễu hạ tầng nhằm tìm lại quy luật hành vi cá nhân gốc (như Lognormal) là một hướng tiếp cận mới chưa được khảo sát kỹ tại quy mô vi mô của Singapore [9].
+
+### 2.1. Hypothesis
+Tại các đô thị nén (Compact City) như Singapore, các giả thuyết được đặt ra là:
 1. Tồn tại một sự chuyển pha dựa trên bán kính di chuyển.
 2. Có sự chuyển dịch dựa trên quy mô quan sát:
     - **Quy mô Vi mô (Bottom-up):** Mô hình phân phối xác suất di chuyển phản ánh thói quen di chuyển ngắn của cá thể (Local optimization).
@@ -23,11 +60,11 @@ Hành vi di chuyển con người trong đô thị thường được coi là tu
 
 | Rank (Tail Strength) | Model                           | Probability Distribution                                                  | Tail Behavior              | Generative Interpretation                           | Strength                                     | Weakness                                 |
 | -------------------- | ------------------------------- | ------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
-| 1                    | **Exponential**                 | $P(r)=\lambda e^{-\lambda r}$                                             | Very short tail            | Random movement with constant decay probability     | Simple baseline model                        | Cannot capture long-distance mobility    |
-| 2                    | **Gamma**                       | $P(r)=\frac{r^{k-1}e^{-r/\theta}}{\Gamma(k)\theta^k}$                     | Short exponential tail     | Aggregation of multiple stochastic travel processes | Flexible near short distances                | Tail still decays rapidly                |
-| 3                    | **Lognormal**                   | $P(r)=\frac{1}{r\sigma\sqrt{2\pi}}\exp(-\frac{(\ln r-\mu)^2}{2\sigma^2})$ | Moderately heavy tail      | Multiplicative behavioral processes                 | Empirically fits many mobility datasets      | Weak theoretical mobility interpretation |
-| 4                    | **Truncated Lévy Flight (TLF)** | $P(r) \propto r^{-\beta} \exp(-\lambda r)$                               | Heavy tail with truncation | Lévy flight mobility constrained by spatial limits  | Strong theoretical basis in mobility studies | Sensitive to truncation scale            |
-| 5                    | **Shifted Power Law (SPL)**     | $P(r)\propto (r+r_0)^{-\beta}$                                            | Heaviest tail              | Scale-free mobility with short-distance correction  | Captures heavy-tail structure well           | May overestimate long-distance trips     |
+| 1                    | **Exponential**                 | $P(r) \propto \exp(-r/\lambda)$                                           | Very short tail            | Random movement with constant decay probability     | Simple baseline model                        | Cannot capture long-distance mobility    |
+| 2                    | **Gamma**                       | $P(r) \propto r^{\alpha-1} \exp(-r/\lambda)$                              | Short exponential tail     | Aggregation of multiple stochastic travel processes | Flexible near short distances                | Tail still decays rapidly                |
+| 3                    | **Lognormal**                   | $P(r) \propto \frac{1}{r} \exp\left(-\frac{(\ln r-\mu)^2}{2\sigma^2}\right)$ | Moderately heavy tail      | Multiplicative behavioral processes                 | Empirically fits many mobility datasets      | Weak theoretical mobility interpretation |
+| 4                    | **Truncated Lévy Flight (TLF)** | $P(r) \propto (r+r_0)^{-\beta} \exp(-r/\kappa)$                           | Heavy tail with truncation | Lévy flight mobility constrained by spatial limits  | Strong theoretical basis in mobility studies | Sensitive to truncation scale            |
+| 5                    | **Shifted Power Law (SPL)**     | $P(r) \propto (r+r_0)^{-\beta}$                                           | Heaviest tail              | Scale-free mobility with short-distance correction  | Captures heavy-tail structure well           | May overestimate long-distance trips     |
 
 ![Distribution Comparison](distribution_comparison.png)
 
@@ -52,24 +89,41 @@ $  T(d_j)  $: Tổng số chuyến đi (trips) của tất cả các cặp ngu�
 $  A(d_j)  $: Tổng số POI (Points of Interest) của các subzone đích $  K  $ trong cùng bin khoảng cách $  d_j  $.
 $  \Phi(d_j)  $: Hiệu suất di chuyển của bin $  d_j  $, cho phép tách biệt “lực ma sát” của khoảng cách khỏi “lực hút” của mật độ hạ tầng.
 
+### 3.1. Block Bootstrap với District-Blocks
+
+Các subzone không độc lập về mặt không gian — các subzone lân cận (VD: Bedok North, Bedok South) chia sẻ hạ tầng giao thông và có phân phối di chuyển tương đồng. Bootstrap thông thường (resample từng subzone độc lập) sẽ **đánh giá thấp phương sai** do bỏ qua tương quan không gian, dẫn đến khoảng tin cậy hẹp giả tạo.
+
+**Giải pháp:** Sử dụng **block bootstrap** với 5 district tự nhiên làm đơn vị resample, bảo toàn cấu trúc tương quan nội bộ trong mỗi block.
+
+**Quy trình:**
+
+1. **Định nghĩa block:** 5 districts — Central (128 subzones), West (67), North-East (42), North (37), East (29).
+2. **Resample:** Chọn ngẫu nhiên 5 districts **có hoàn lại** (with replacement). VD: một mẫu có thể là {Central, Central, East, West, West}.
+3. **Tổng hợp:** Gom tất cả subzones từ các districts được chọn → tập dữ liệu bootstrap (kích cỡ thay đổi tùy mẫu).
+4. **Tính toán:** Trên mỗi mẫu bootstrap, tính lại BIC Best %, Mean $R^2$, Mean KS-stat cho 5 mô hình.
+5. **Lặp lại:** 1000 lần tái lấy mẫu.
+6. **Khoảng tin cậy:** 95% CI = percentile [2.5%, 97.5%] từ 1000 giá trị bootstrap.
+
+**Hạn chế:** Chỉ có 5 blocks → phân phối bootstrap bị rời rạc (tối đa $5^5 = 3125$ tổ hợp duy nhất). CI mang tính **bảo thủ** (conservative) — nếu kết quả có ý nghĩa thống kê với 5 blocks, thì càng mạnh hơn với nhiều blocks hơn.
+
 ## 4. Results: The Scale-Transition
 
 ### 4.1. Khảo sát tại Cấp Vi mô - Subzone (Micro-scale)
 Tại quy mô nhỏ, hành vi di chuyển bị chi phối bởi các lựa chọn cá nhân dựa trên sự tiện lợi cục bộ.
 
-**Table 1.** Goodness-of-fit comparison at the micro-scale (subzone level, n = 303).
+**Table 1.** Goodness-of-fit comparison at the micro-scale (subzone level, n = 303, block bootstrap 95% CI, 5 district-blocks, 1000 iterations).
 
-*Nguồn: `zone_distribution_metrics.csv` ← `compare_distribution_formular.py`*
+*Nguồn: `zone_distribution_metrics.csv` ← `compare_distribution_formular.py`, `bootstrap_table1_ci.csv` ← `bootstrap_block_table1.py`*
 
-| Distribution              | BIC Best (%) | Mean $R^2$   | Mean KS-stat |
-|---------------------------|--------------|--------------|--------------|
-| **Lognormal**             | **28.05**    | **0.8199**   | 0.1492       |
-| Shifted Power-Law (SPL)   | **28.05**    | 0.6998       | 0.0935       |
-| Gamma                     | 24.09        | 0.8022       | 0.1911       |
-| Exponential               | 16.50        | 0.6919       | 0.1216       |
-| Truncated Lévy Flight     | 3.30         | 0.7026       | 0.0898       |
+| Distribution              | BIC Best (%) | 95% CI BIC       | Mean $R^2$   | 95% CI $R^2$         |
+|---------------------------|--------------|------------------|--------------|----------------------|
+| **Lognormal**             | **28.05**    | [14.69, 35.67]   | **0.8199**   | **[0.7955, 0.8456]** |
+| Shifted Power-Law (SPL)   | **28.05**    | [19.46, 44.51]   | 0.6998       | [0.6613, 0.7254]     |
+| Gamma                     | 24.09        | [18.23, 36.06]   | 0.8022       | [0.7815, 0.8301]     |
+| Exponential               | 16.50        | [11.00, 19.46]   | 0.6919       | [0.6499, 0.7152]     |
+| Truncated Lévy Flight     | 3.30         | [0.87, 5.56]     | 0.7026       | [0.6639, 0.7284]     |
 
-Lognormal và SPL chia sẻ vị trí dẫn đầu về BIC, nhưng Lognormal vượt trội về $R^2$ (0.8199), mô tả chính xác sự chùm tụ của các chuyến đi ngắn quanh "đỉnh" phân phối.
+Lognormal và SPL chia sẻ vị trí dẫn đầu về BIC (28.05%), nhưng bootstrap CI cho thấy $R^2$ của Lognormal **[0.7955, 0.8456]** hoàn toàn không giao cắt với SPL **[0.6613, 0.7254]** — xác nhận Lognormal vượt trội có ý nghĩa thống kê ($P(R^2_{LN} > R^2_{SPL}) = 100\%$ trên 1000 mẫu bootstrap).
 
 ### 4.2. Khảo sát tại Cấp vĩ mô - District (Macro-scale)
 Khi quy mô mở rộng, cấu trúc hạ tầng bắt đầu lấn át thói quen cá nhân.
@@ -92,9 +146,9 @@ SPL chiếm ưu thế về độ khớp hình học (KS-stat thấp nhất) và 
 *Hình 1. So sánh Lognormal và SPL: Sự sụt giảm của Lognormal ở phần đuôi khiến nó bị loại bỏ bởi tiêu chuẩn BIC tại quy mô vĩ mô.*
 
 ### 4.3. Bản chất hành vi cá nhân và Sức hút hạ tầng (Efficiency Analysis)
-Để hiểu rõ động lực phía sau sự chuyển dịch quy mô, chúng tôi chuẩn hóa xác suất di chuyển thực tế $P(d)$ theo mật độ hạ tầng $A(d)$ từ **Open Street Map**. Mục tiêu là kiểm chứng xem liệu sau khi "khử" đi sức hút của các trung tâm đô thị, quy luật di chuyển gốc sẽ tuân theo mô hình nào.
+Để hiểu rõ động lực phía sau sự chuyển dịch quy mô, chúng tôi chuẩn hóa dữ liệu di chuyển thực tế $T(d_j)$ theo mật độ hạ tầng $A(d_j)$ từ **Open Street Map**. Mục tiêu là kiểm chứng xem liệu sau khi "khử" đi sức hút của các trung tâm đô thị, quy luật di chuyển gốc sẽ tuân theo mô hình nào.
 
-**Table 3.** Goodness-of-fit for Mobility Efficiency $\Phi(d)$ (Global and District-level).
+**Table 3.** Goodness-of-fit for Mobility Efficiency $\Phi(d_j)$ (Global and District-level).
 
 *Nguồn: `poi_analysis_results.csv` ← `analyze_poi_attraction.py`, `district_poi_results.csv` ← `analyze_poi_attraction_districts.py`*
 
@@ -197,7 +251,7 @@ Nghiên cứu khẳng định quy luật di chuyển tại Singapore là **phụ
 
 1. **Cấp Vi mô (Subzone):** **Lognormal** chiếm ưu thế (BIC Best = 28.05%, $R^2$ = 0.8199), phản ánh thói quen tối ưu hóa cục bộ của cá nhân.
 2. **Cấp Vĩ mô (District):** **Shifted Power-Law** chiếm ưu thế (BIC Best = 40%, KS-stat = 0.0474), phản ánh lực hút hạ tầng đô thị.
-3. **Chuẩn hóa POI:** Sau khi khử sức hút hạ tầng ($\Phi(d)$), Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385 trung bình 5 quận), chứng minh SPL chỉ là biểu hiện ngoài do hạ tầng.
+3. **Chuẩn hóa POI:** Sau khi khử sức hút hạ tầng ($\Phi(d_j)$), Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385 trung bình 5 quận), chứng minh SPL chỉ là biểu hiện ngoài do hạ tầng.
 4. **Xác thực dữ liệu:** Ground Truth nhất quán với Facebook Mobility Data (EMD trung bình = 0.2643), xác nhận dữ liệu không bị lệch mẫu.
 
 ---
@@ -208,3 +262,6 @@ Nghiên cứu khẳng định quy luật di chuyển tại Singapore là **phụ
 4. Liang, X. et al (2013). *Transportation Research Part C*. DOI: 10.1016/j.trc.2012.12.004
 5. Barbosa, H. et al (2018). *Physics Reports*. DOI: 10.1016/j.physrep.2018.01.001
 6. Marquardt, D. W. (1963). *SIAM*. DOI: 10.1137/0111030
+7. Noulas, A. et al (2012). A Tale of Many Cities: Universal Patterns in Human Urban Mobility. *PLOS ONE*. DOI: 10.1371/journal.pone.0037027
+8. Sun, L. et al (2013). Efficient-community-based mobility model for Singapore's public transport system. *IEEE Trans. on Intelligent Transportation Systems*. DOI: 10.1109/TITS.2013.2272201
+9. Liu, Y. et al (2012). Understanding individual mobility patterns from urban taxi trips. *Cities*. DOI: 10.1016/j.cities.2012.01.002

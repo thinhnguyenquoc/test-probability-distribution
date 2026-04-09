@@ -2,6 +2,7 @@
 # =====================================================================
 # Cấu trúc dự án: Singapore Mobility Distribution Analysis
 # Dùng cho LLM đọc nhanh và kiểm chứng số liệu trong báo cáo.
+# Cập nhật: 2026-04-09
 #
 # Quy ước:
 #   report   = file báo cáo chính
@@ -32,6 +33,7 @@ raw_data:
   - file: district_zone.csv
     desc: "Ánh xạ subzone → district (zone_id, district_id, district_name)"
     districts: [Central, East, North, North-East, West]
+    subzones_per_district: {Central: 128, West: 67, North-East: 42, North: 37, East: 29}
 
   - file: fb_agg.csv
     desc: "Facebook Mobility Data tổng hợp theo district và distance bin"
@@ -48,26 +50,31 @@ raw_data:
 
 pipeline:
 
-  # ─── TABLE 1: Micro-scale (303 subzones) ───
+  # ─── TABLE 1: Micro-scale (303 subzones) + Block Bootstrap CI ───
   - id: table1
     report_section: "4.1"
     report_table: "Table 1"
     status: VERIFIED
-    script: compare_distribution_formular.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
+    scripts:
+      - compare_distribution_formular.py    # tính BIC, R², KS per subzone
+      - bootstrap_block_table1.py           # block bootstrap 95% CI
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv]
     outputs:
-      data: zone_distribution_metrics.csv
-      figures: [zone_distribution_metrics.png, zone_distribution_metrics_best.png]
+      data:
+        - zone_distribution_metrics.csv     # per-subzone per-model metrics
+        - bootstrap_table1_ci.csv           # 95% CI from 1000 bootstrap iterations
+      figures:
+        - zone_distribution_metrics.png
+        - zone_distribution_metrics_best.png
+        - bootstrap_table1_distributions.png
     numbers_in_report:
-      - "Lognormal BIC Best = 28.05%"
-      - "Lognormal Mean R² = 0.8199"
-      - "Lognormal Mean KS = 0.1492"
-      - "SPL BIC Best = 28.05%"
-      - "SPL Mean R² = 0.6998"
-      - "SPL Mean KS = 0.0935"
-      - "Gamma BIC Best = 24.09%"
-      - "Exponential BIC Best = 16.50%"
-      - "TLF BIC Best = 3.30%"
+      - "Lognormal BIC Best = 28.05%, 95% CI [14.69, 35.67]"
+      - "Lognormal Mean R² = 0.8199, 95% CI [0.7955, 0.8456]"
+      - "SPL Mean R² = 0.6998, 95% CI [0.6613, 0.7254]"
+      - "R² CIs do NOT overlap → P(LN > SPL) = 100%"
+    bootstrap:
+      method: "Block bootstrap, 5 district-blocks, 1000 iterations"
+      blocks: [Central, East, North, North-East, West]
 
   # ─── TABLE 2: Macro-scale (5 districts) ───
   - id: table2
@@ -108,31 +115,37 @@ pipeline:
       data: district_poi_results.csv
       figures: [district_poi_analysis.png]
     numbers_in_report:
-      - "North-East R²_LN = 0.9315, R²_SPL = 0.9240"
-      - "East R²_LN = 0.7332, R²_SPL = 0.5146"
-      - "West R²_LN = 0.8647, R²_SPL = 0.8624"
-      - "Central R²_LN = 0.8025, R²_SPL = 0.7700"
-      - "North R²_LN = 0.7034, R²_SPL = 0.6216"
       - "Mean R²_LN = 0.8071, Mean R²_SPL = 0.7385"
 
-  # ─── TABLE 4: Facebook EMD ───
+  # ─── TABLE 4: Facebook Data Validation ───
   - id: table4
     report_section: "4.4"
     report_table: "Table 4"
     status: VERIFIED
-    script: compare_fb_pl.py
+    script: compare_fb_all_models.py
     inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv, fb_agg.csv]
     outputs:
-      data: fb_vs_pl.csv
-      figures: [fb_vs_pl.png, fb_vs_pl_best.png]
-    note: "Script chỉ so sánh SPL vs Facebook. Chỉ tính Overall Wasserstein per district."
+      data: fb_vs_all_models.csv
+    note: "Dùng làm data validation (GT vs FB), không dùng để so sánh mô hình vì FB chỉ có 4 bins thô."
     numbers_in_report:
-      - "North-East: MAE=0.1540, RMSE=0.1943, EMD=0.1123, KL=0.4830"
-      - "East: MAE=0.1553, RMSE=0.1879, EMD=0.0583, KL=0.6585"
-      - "West: MAE=0.1425, RMSE=0.1739, EMD=0.0756, KL=0.4263"
-      - "Central: MAE=0.1446, RMSE=0.1853, EMD=0.1135, KL=0.3998"
-      - "North: MAE=0.1385, RMSE=0.1784, EMD=0.0549, KL=0.4242"
-      - "Mean EMD = 0.0829"
+      - "Mean EMD GT vs Facebook = 0.2643"
+      - "North-East: 0.2177, West: 0.2344, East: 0.2544, North: 0.2907, Central: 0.3245"
+
+  # ─── TABLE 5: Threshold Transition Analysis ───
+  - id: table5
+    report_section: "4.5"
+    report_table: "Table 5"
+    status: VERIFIED
+    script: generate_table5_threshold_analysis.py
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
+    outputs:
+      data: table5_threshold_analysis.csv
+      figures: [threshold_transition.png]
+    numbers_in_report:
+      - "LN thắng SPL ở toàn bộ 60 cửa sổ (0–30 km)"
+      - "Không tồn tại ngưỡng chuyển pha d* trên trục khoảng cách"
+      - "0–0.5km: R²_LN=0.9980, R²_SPL=-0.0023"
+      - "0–30km: R²_LN=0.9179, R²_SPL=0.7181"
 
   # ─── FIGURES (không gắn table) ───
   - id: fig_distribution_comparison
@@ -152,81 +165,20 @@ pipeline:
       figures: [bic_logic_illustration.png]
 
 # =========================================
-# CÁC SCRIPT/FILE KHÔNG DÙNG TRONG BÁO CÁO
+# CÁC SCRIPT/FILE CÒN LẠI KHÔNG DÙNG
 # =========================================
 unused_files:
   scripts:
-    - file: uncertainty_analysis.py
-      desc: "Bootstrap SPL parameters (β, r₀, C) cho 5 districts — 200 iterations"
-      output: [spl_parameter_uncertainty.csv, spl_parameter_uncertainty.png]
-      reason: "Kết quả không được trích dẫn trong báo cáo hiện tại"
-
-    - file: calc_euclidean.py
-      desc: "Tính khoảng cách Euclidean từ shapefile"
-      reason: "Đã có sẵn zone_euclid_distances.csv"
-
-    - file: calculate_table3_extended.py
-      desc: "Phiên bản mở rộng Table 3"
-      reason: "Không sử dụng"
-
-    - file: compare_fb_gt.py
-      desc: "So sánh Facebook vs Ground Truth"
-      reason: "Thay bằng compare_fb_pl.py"
-
-    - file: zone_distributions.py
-      desc: "Phân tích phân phối zone (phiên bản cũ)"
-      reason: "Thay bằng compare_distribution_formular.py"
-
-    - file: validate_scale_transition.py
-      desc: "Validation scale transition"
-      reason: "Không có output trong báo cáo"
-
-    - file: plot_spatial_boundaries.py
-      desc: "Vẽ bản đồ Singapore"
-      output: [singapore_districts.png, singapore_subzones.png]
-      reason: "Hình không dùng trong báo cáo hiện tại"
-
-    - file: generate_table.py
-      desc: "Script sinh bảng (phiên bản cũ)"
-      reason: "Không sử dụng"
-
-    - file: test_scale_free_property.py
-      desc: "Kiểm tra tính scale-free"
-      output: [scale_free_check.png]
-      reason: "Không dùng trong báo cáo"
-
-    - file: radiation_model.py
-      desc: "Radiation model"
-      reason: "Không dùng trong báo cáo"
-
-    - file: plot_distribution_function.py
-      desc: "Vẽ distribution function (phiên bản cũ)"
-      output: [distribution_function.png]
-      reason: "Thay bằng distribute_curve.py"
-
-  data:
-    - file: zone_distribution_results.csv
-      reason: "Phiên bản cũ, thay bằng zone_distribution_metrics.csv"
-    - file: fb_vs_gt_merged.csv
-      reason: "Output từ compare_fb_gt.py (không dùng)"
-
-  figures:
-    - file: scale_transition_validation.png
-      reason: "Từ validate_scale_transition.py (không dùng)"
-    - file: scale_free_check.png
-      reason: "Từ test_scale_free_property.py (không dùng)"
-    - file: distribution_function.png
-      reason: "Phiên bản cũ"
-    - file: singapore_districts.png
-      reason: "Không dùng trong báo cáo hiện tại"
-    - file: singapore_subzones.png
-      reason: "Không dùng trong báo cáo hiện tại"
+    - file: compare_fb_pl.py
+      desc: "Phiên bản cũ: chỉ so sánh SPL vs Facebook"
+      output: [fb_vs_pl.csv, fb_vs_pl.png, fb_vs_pl_best.png]
+      reason: "Thay bằng compare_fb_all_models.py (5 mô hình) và rút gọn thành data validation"
 
 # =========================================
 # KIỂM CHỨNG NHANH (cho LLM)
 # =========================================
 verification_commands:
-  table1: |
+  table1_values: |
     python3 -c "
     import pandas as pd
     z = pd.read_csv('zone_distribution_metrics.csv')
@@ -234,6 +186,13 @@ verification_commands:
     for m in ['Lognormal','Shifted Power-Law','Gamma','Exponential','Truncated Lévy Flight']:
       s = z[z['Model']==m]
       print(f'{m}: BIC={best[best[\"Model\"]==m].shape[0]/len(best)*100:.2f}% R2={s[\"R2\"].mean():.4f} KS={s[\"KS_Stat\"].mean():.4f}')
+    "
+
+  table1_bootstrap: |
+    python3 -c "
+    import pandas as pd
+    ci = pd.read_csv('bootstrap_table1_ci.csv')
+    print(ci.to_string(index=False))
     "
 
   table2: |
@@ -253,5 +212,16 @@ verification_commands:
 
   table4: |
     python3 -c "
-    import pandas as pd; print(pd.read_csv('fb_vs_pl.csv').to_string(index=False))
+    import pandas as pd
+    r = pd.read_csv('fb_vs_all_models.csv')
+    gt = r.drop_duplicates('District')[['District','EMD_GT_vs_FB']]
+    print(gt.to_string(index=False))
+    print(f'Mean: {gt.EMD_GT_vs_FB.mean():.4f}')
+    "
+
+  table5: |
+    python3 -c "
+    import pandas as pd
+    t = pd.read_csv('table5_threshold_analysis.csv')
+    print(t[['Distance_Window_km','R2_Lognormal','R2_SPL','Winner','Percent_Data']].to_string(index=False))
     "
