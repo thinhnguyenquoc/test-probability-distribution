@@ -89,41 +89,54 @@ $T(d_j)$: Tổng số chuyến đi (trips) của tất cả các cặp nguồn�
 $A(d_j)$: Tổng số POI (Points of Interest) của các subzone đích $K$ trong cùng bin khoảng cách $d_j$.
 $\Phi(d_j)$: Hiệu suất di chuyển của bin $d_j$, cho phép tách biệt “lực ma sát” của khoảng cách khỏi “lực hút” của mật độ hạ tầng.
 
-### 3.1. Block Bootstrap với District-Blocks
+### 3.1. Block Bootstrap với 40 Group-Blocks
 
-Các subzone không độc lập về mặt không gian — các subzone lân cận (VD: Bedok North, Bedok South) chia sẻ hạ tầng giao thông và có phân phối di chuyển tương đồng. Bootstrap thông thường (resample từng subzone độc lập) sẽ **đánh giá thấp phương sai** do bỏ qua tương quan không gian, dẫn đến khoảng tin cậy hẹp giả tạo.
+Các subzone không độc lập về mặt không gian — các subzone lân cận chia sẻ hạ tầng giao thông và có phân phối di chuyển tương đồng. Bootstrap thông thường (resample từng subzone độc lập) sẽ **đánh giá thấp phương sai** do bỏ qua tương quan không gian, dẫn đến khoảng tin cậy hẹp giả tạo.
 
-**Giải pháp:** Sử dụng **block bootstrap** với 5 district tự nhiên làm đơn vị resample, bảo toàn cấu trúc tương quan nội bộ trong mỗi block.
+**Giải pháp:** Sử dụng **block bootstrap** với **40 group-blocks** (được phân cụm từ 303 subzones dựa trên khoảng cách và district) làm đơn vị resample. Việc tăng số lượng block từ 5 (districts) lên 40 giúp tăng độ phân giải của phân phối bootstrap, cung cấp khoảng tin cậy (CI) chính xác và đáng tin cậy hơn.
 
 **Quy trình:**
-
-1. **Định nghĩa block:** 5 districts — Central (128 subzones), West (67), North-East (42), North (37), East (29).
-2. **Resample:** Chọn ngẫu nhiên 5 districts **có hoàn lại** (with replacement). VD: một mẫu có thể là {Central, Central, East, West, West}.
-3. **Tổng hợp:** Gom tất cả subzones từ các districts được chọn → tập dữ liệu bootstrap (kích cỡ thay đổi tùy mẫu).
+1. **Định nghĩa block:** 40 groups địa lý liền kề (trung bình ~7.5 subzones/block).
+2. **Resample:** Chọn ngẫu nhiên 40 blocks **có hoàn lại** (with replacement).
+3. **Tổng hợp:** Gom tất cả subzones từ các blocks được chọn → tập dữ liệu bootstrap.
 4. **Tính toán:** Trên mỗi mẫu bootstrap, tính lại BIC Best %, Mean $R^2$, Mean KS-stat cho 5 mô hình.
 5. **Lặp lại:** 1000 lần tái lấy mẫu.
 6. **Khoảng tin cậy:** 95% CI = percentile [2.5%, 97.5%] từ 1000 giá trị bootstrap.
 
-**Hạn chế:** Chỉ có 5 blocks → phân phối bootstrap bị rời rạc (tối đa $5^5 = 3125$ tổ hợp duy nhất). CI mang tính **bảo thủ** (conservative) — nếu kết quả có ý nghĩa thống kê với 5 blocks, thì càng mạnh hơn với nhiều blocks hơn.
+**Lợi ích:** Việc sử dụng 40 blocks giúp CI phản ánh sát thực tế hơn so với việc chỉ dùng 5 districts (vốn mang tính bảo thủ cao do số lượng block quá ít).
+
+### 3.2. Phân vùng cấp độ Trung gian (Intermediate-scale: 40 Groups)
+
+Để làm rõ hơn lộ trình chuyển dịch từ vi mô sang vĩ mô, chúng tôi bổ sung một cấp độ quan sát trung gian bằng cách chia Singapore thành **40 khu vực địa lý** (40 groups).
+
+**Phương pháp thực hiện:**
+- Mỗi district trong số 5 district chính được chia nhỏ thành đúng **8 nhóm liền kề**.
+- Sử dụng thuật toán **Agglomerative Clustering** với ràng buộc **Connectivity matrix** (dựa trên ma trận tiếp giáp không gian của 303 subzones). Ràng buộc này đảm bảo các subzone trong cùng một nhóm phải chạm nhau về mặt địa lý, tạo thành một vùng duy nhất.
+- Thuật toán ưu tiên sự cân bằng về số lượng subzone và tối ưu hóa khoảng cách nội cụm (linkage strategy: complete).
+
+Việc phân chia này tạo ra các thực thể địa lý có kích thước lớn hơn subzone (~7.5 subzones/group) nhưng nhỏ hơn district (~60.6 subzones/district), cho phép quan sát sự "mờ dần" của thói quen cá nhân và sự "hiện rõ" của lực hấp dẫn đô thị.
+
+![Bản đồ 40 khu vực địa lý Singapore](singapore_40_regions.png)
+*Hình 1. Phân vùng Singapore thành 40 nhóm trung gian dựa trên sự liền kề không gian và ranh giới district.*
 
 ## 4. Results: The Scale-Transition
 
 ### 4.1. Khảo sát tại Cấp Vi mô - Subzone (Micro-scale)
 Tại quy mô nhỏ, hành vi di chuyển bị chi phối bởi các lựa chọn cá nhân dựa trên sự tiện lợi cục bộ.
 
-**Table 1.** Goodness-of-fit comparison at the micro-scale (subzone level, n = 303, block bootstrap 95% CI, 5 district-blocks, 1000 iterations).
+**Table 1.** Goodness-of-fit comparison at the micro-scale (subzone level, n = 303, block bootstrap 95% CI, 40 group-blocks, 1000 iterations).
 
-*Nguồn: `zone_distribution_metrics.csv` ← `compare_distribution_formular.py`, `bootstrap_table1_ci.csv` ← `bootstrap_block_table1.py`*
+*Nguồn: `zone_distribution_metrics.csv` ← `compare_distribution_formular.py`, `bootstrap_table1_ci_40groups.csv` ← `bootstrap_block_table1_40groups.py`*
 
 | Distribution              | BIC Best (%) | 95% CI BIC       | Mean $R^2$   | 95% CI $R^2$         |
 |---------------------------|--------------|------------------|--------------|----------------------|
-| **Lognormal**             | **28.05**    | [14.69, 35.67]   | **0.8199**   | **[0.7955, 0.8456]** |
-| Shifted Power-Law (SPL)   | **28.05**    | [19.46, 44.51]   | 0.6998       | [0.6613, 0.7254]     |
-| Gamma                     | 24.09        | [18.23, 36.06]   | 0.8022       | [0.7815, 0.8301]     |
-| Exponential               | 16.50        | [11.00, 19.46]   | 0.6919       | [0.6499, 0.7152]     |
-| Truncated Lévy Flight     | 3.30         | [0.87, 5.56]     | 0.7026       | [0.6639, 0.7284]     |
+| **Lognormal**             | **28.05**    | [16.45, 36.30]   | **0.8199**   | **[0.7898, 0.8397]** |
+| Shifted Power-Law (SPL)   | **28.05**    | [14.41, 41.79]   | 0.6998       | [0.6746, 0.7254]     |
+| Gamma                     | 24.09        | [16.97, 37.38]   | 0.8022       | [0.7775, 0.8215]     |
+| Exponential               | 16.50        | [12.28, 22.28]   | 0.6919       | [0.6637, 0.7163]     |
+| Truncated Lévy Flight     | 3.30         | [1.23, 5.44]     | 0.7026       | [0.6775, 0.7284]     |
 
-Lognormal và SPL chia sẻ vị trí dẫn đầu về BIC (28.05%), nhưng bootstrap CI cho thấy $R^2$ của Lognormal **[0.7955, 0.8456]** hoàn toàn không giao cắt với SPL **[0.6613, 0.7254]** — xác nhận Lognormal vượt trội có ý nghĩa thống kê ($P(R^2_{LN} > R^2_{SPL}) = 100\%$ trên 1000 mẫu bootstrap).
+Lognormal và SPL chia sẻ vị trí dẫn đầu về BIC (28.05%), nhưng bootstrap CI với 40 blocks xác nhận $R^2$ của Lognormal **[0.7898, 0.8397]** hoàn toàn tách biệt với SPL **[0.6746, 0.7254]**. Điều này khẳng định Lognormal là mô hình mô tả hành vi cá nhân chính xác nhất tại Singapore.
 
 ### 4.2. Khảo sát tại Cấp vĩ mô - District (Macro-scale)
 Khi quy mô mở rộng, cấu trúc hạ tầng bắt đầu lấn át thói quen cá nhân.
@@ -143,12 +156,35 @@ Khi quy mô mở rộng, cấu trúc hạ tầng bắt đầu lấn át thói qu
 SPL chiếm ưu thế về độ khớp hình học (KS-stat thấp nhất) và tiêu chuẩn BIC (40%). Việc Lognormal thất bại ở quy mô vĩ mô dù có $R^2$ cao là do "Nghịch lý Đuôi" (The Tail Paradox): Lognormal không bắt kịp các hành trình dài liên quận.
 
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
-*Hình 1. So sánh Lognormal và SPL: Sự sụt giảm của Lognormal ở phần đuôi khiến nó bị loại bỏ bởi tiêu chuẩn BIC tại quy mô vĩ mô.*
+*Hình 2. So sánh Lognormal và SPL: Sự sụt giảm của Lognormal ở phần đuôi khiến nó bị loại bỏ bởi tiêu chuẩn BIC tại quy mô vĩ mô.*
 
-### 4.3. Bản chất hành vi cá nhân và Sức hút hạ tầng (Efficiency Analysis)
+### 4.3. So sánh Tổng hợp: Sự chuyển dịch theo Quy mô Gom nhóm (40 Groups scale)
+
+Khi thực hiện fitting cho 40 nhóm trung gian (n=40, chia nhỏ từ districts), kết quả cho thấy một bức tranh chuyển dịch liền mạch về cả độ khớp ($R^2$) và tiêu chuẩn thông tin (BIC).
+
+**Table 3.** Comparison of model performance across three spatial scales (BIC Best % and Mean $R^2$).
+
+| Model | Subzone (n=303) | | 40 Groups (n=40) | | District (n=5) | |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** | **BIC %** | **$R^2$** |
+| **Lognormal** | **28.05%** | **0.8199** | **20.6%** | **0.8370** | 0.0% | **0.9307** |
+| **SPL** | 28.05% | 0.6998 | 8.8% | 0.7739 | **40.0%** | 0.8987 |
+| Gamma | 24.09% | 0.8022 | 38.2% | 0.8289 | 20.0% | 0.8965 |
+| Exponential | 16.50% | 0.6919 | 26.5% | 0.7653 | 40.0% | 0.8882 |
+| TLF | 3.30% | 0.7026 | 5.9% | 0.7774 | 0.0% | 0.8987 |
+
+**Phân tích sự chuyển dịch:**
+- **Độ khớp ($R^2$)**: Cả 5 mô hình đều có xu hướng tăng $R^2$ khi quy mô gom nhóm tăng lên (từ Subzone → District). Điều này do việc gom nhóm lớn giúp triệt tiêu các nhiễu thống kê ở cấp độ cá thể. Lognormal luôn giữ $R^2$ cao nhất ở mọi quy mô.
+- **Tiêu chuẩn BIC**: Mặc dù $R^2$ cao, tỉ lệ thắng theo BIC của Lognormal giảm dần (**28% → 20% → 0%**). Ngược lại, SPL bắt đầu chiếm ưu thế ở quy mô vĩ mô (40%).
+- **Cấp độ Intermediate (40 Groups)**: Cho thấy trạng thái quá độ rõ rệt nơi Lognormal vẫn còn hiệu quả đáng kể nhưng các mô hình Gamma/Exp bắt đầu trỗi dậy mạnh mẽ nhất (64.7%).
+
+![So sánh phân phối 40 nhóm](group_40_distribution_comparison.png)
+*Hình 3. Phân bổ các mô hình tối ưu (BIC) tại quy mô 40 nhóm.*
+
+### 4.4. Bản chất hành vi cá nhân và Sức hút hạ tầng (Efficiency Analysis)
 Để hiểu rõ động lực phía sau sự chuyển dịch quy mô, chúng tôi chuẩn hóa dữ liệu di chuyển thực tế $T(d_j)$ theo mật độ hạ tầng $A(d_j)$ từ **Open Street Map**. Mục tiêu là kiểm chứng xem liệu sau khi "khử" đi sức hút của các trung tâm đô thị, quy luật di chuyển gốc sẽ tuân theo mô hình nào.
 
-**Table 3.** Goodness-of-fit for Mobility Efficiency $\Phi(d_j)$ (Global and District-level).
+**Table 4.** Goodness-of-fit for Mobility Efficiency $\Phi(d_j)$ (Global and District-level).
 
 *Nguồn: `poi_analysis_results.csv` ← `analyze_poi_attraction.py`, `district_poi_results.csv` ← `analyze_poi_attraction_districts.py`*
 
@@ -167,13 +203,13 @@ Kết quả chuẩn hóa mang lại một phát hiện quan trọng: Nếu như 
 Điều này khẳng định rằng: **Mô hình Lognormal thể hiện được tính đặc trưng di chuyển của cá nhân** (với các hành trình ngắn và tối ưu cục bộ). Trong khi đó, sự chiếm ưu thế trước đó của mô hình SPL trên cấp độ quận chỉ là do các đặc tính thu hút hạ tầng đô thị lấn át đặc tính cá nhân.
 
 ![POI Attraction Analysis](poi_attraction_analysis.png)
-*Hình 2. Hiệu suất di chuyển $\Phi(d)$ sau khi chuẩn hóa theo POIs. Việc loại bỏ "lực hấp dẫn đô thị" giúp phục hồi đặc tính Lognormal của hành vi cá nhân.*
+*Hình 4. Hiệu suất di chuyển $\Phi(d)$ sau khi chuẩn hóa theo POIs.*
 
-### 4.4. Xác thực Dữ liệu qua Facebook Mobility Data
+### 4.5. Xác thực Dữ liệu qua Facebook Mobility Data
 
 Để đảm bảo dữ liệu Ground Truth (GT) không bị lệch mẫu, chúng tôi so sánh phân phối khoảng cách GT với dữ liệu độc lập từ Facebook Mobility Data, sử dụng khoảng cách Wasserstein (EMD) trên 4 distance bins chuẩn Facebook: (0,1), [1,10), [10,100), 100+ km.
 
-**Table 4.** Wasserstein (EMD) giữa Ground Truth và Facebook Mobility Data (n = 5 districts).
+**Table 5.** Wasserstein (EMD) giữa Ground Truth và Facebook Mobility Data (n = 5 districts).
 
 *Nguồn: `fb_vs_all_models.csv` ← `compare_fb_all_models.py`*
 
@@ -188,11 +224,11 @@ Kết quả chuẩn hóa mang lại một phát hiện quan trọng: Nếu như 
 
 EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán về hình dạng tổng thể**, xác nhận dữ liệu không bị lệch một cách hệ thống. Lưu ý: Facebook chỉ cung cấp 4 bins rất thô, nên EMD không phù hợp để so sánh chi tiết giữa các mô hình — chỉ dùng làm kiểm tra tính nhất quán nguồn dữ liệu.
 
-### 4.5. Phân tích Ngưỡng Chuyển pha (Transition Threshold Analysis)
+### 4.6. Phân tích Ngưỡng Chuyển pha (Transition Threshold Analysis)
 
 Để xác định điểm giao cắt giữa Lognormal (vi mô) và SPL (vĩ mô), chúng tôi tính $R^2$ của cả hai mô hình trên các cửa sổ khoảng cách tích lũy $[0, d_{max}]$ với $d_{max} = 0.5, 1.0, \ldots, 30.0$ km.
 
-**Table 5.** Cumulative distance window analysis: $R^2$ of Lognormal vs SPL.
+**Table 6.** Cumulative distance window analysis: $R^2$ of Lognormal vs SPL.
 
 *Nguồn: `table5_threshold_analysis.csv` ← `generate_table5_threshold_analysis.py`*
 
@@ -210,7 +246,7 @@ EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán 
 | 0 – 30.0 km     | **0.9179**        |  0.7181     | LN     |  99.9% |
 
 ![Threshold Transition](threshold_transition.png)
-*Hình 3. $R^2$ theo cửa sổ khoảng cách tích lũy (0–30 km). Lognormal (đỏ) chiếm ưu thế tại mọi cửa sổ, không có giao cắt với SPL (xanh).*
+*Hình 5. $R^2$ theo cửa sổ khoảng cách tích lũy (0–30 km). Lognormal (đỏ) chiếm ưu thế tại mọi cửa sổ, không có giao cắt với SPL (xanh).*
 
 **Phát hiện:** Khác với giả thuyết ban đầu, **không tồn tại ngưỡng chuyển pha $d^*$ rõ ràng** trên trục khoảng cách. Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy (0–30 km, bao phủ 99.9% tổng chuyến đi). Khoảng cách giữa $R^2$ hai mô hình thu hẹp dần từ ~1.0 (tại 0.5 km) xuống ~0.2 (tại 30 km), nhưng không bao giờ giao cắt. Điều này cho thấy sự chuyển dịch từ Lognormal sang SPL (Table 1 → Table 2) không phải do khoảng cách, mà do **cấp độ tổng hợp không gian** (subzone → district). Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được tốt hơn.
 
@@ -220,7 +256,7 @@ EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán 
 
 **Giả thuyết 1 — Tồn tại sự chuyển pha dựa trên bán kính di chuyển:** ❌ **BÁC BỎ**
 
-Table 5 cho thấy Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy từ 0–30 km (bao phủ 99.9% chuyến đi). $R^2$ của Lognormal luôn > 0.72, trong khi SPL chỉ đạt tối đa 0.72 tại 30 km. Không tồn tại ngưỡng chuyển pha $d^*$ trên trục khoảng cách.
+Table 6 cho thấy Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy từ 0–30 km (bao phủ 99.9% chuyến đi). $R^2$ của Lognormal luôn > 0.72, trong khi SPL chỉ đạt tối đa 0.72 tại 30 km. Không tồn tại ngưỡng chuyển pha $d^*$ trên trục khoảng cách.
 
 **Giả thuyết 2 — Sự chuyển dịch dựa trên quy mô quan sát:** ✅ **XÁC NHẬN**
 
@@ -230,7 +266,7 @@ Table 5 cho thấy Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy
 | $R^2$ cao nhất | Lognormal (0.8199) | Lognormal (0.9307) nhưng BIC = 0% |
 | Sau POI normalization | — | Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385) — Table 3 |
 
-Sự chuyển dịch xảy ra khi thay đổi **cấp độ tổng hợp không gian** (subzone → district), không phải khi thay đổi bán kính. Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được, nhưng sau khi chuẩn hóa POI, Lognormal lấy lại ưu thế — xác nhận SPL phản ánh hạ tầng, Lognormal phản ánh hành vi cá nhân.
+Sự chuyển dịch xảy ra khi thay đổi **cấp độ tổng hợp không gian** (subzone → 40 groups → district), không phải khi thay đổi bán kính. Kết quả tại 40 groups (Table 3) cung cấp bằng chứng thực nghiệm về lộ trình "mất dấu" của Lognormal (hành vi cá nhân) và sự "trỗi dậy" của SPL (hạ tầng đô thị) theo một hàm đơn điệu của mức độ gom nhóm. Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được, nhưng sau khi chuẩn hóa POI, Lognormal lấy lại ưu thế — xác nhận SPL phản ánh hạ tầng, Lognormal phản ánh hành vi cá nhân.
 
 **Giả thuyết 3 — TLF không hiệu quả với Singapore:** ✅ **XÁC NHẬN**
 

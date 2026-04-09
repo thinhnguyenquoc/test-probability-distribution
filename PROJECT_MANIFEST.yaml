@@ -44,40 +44,38 @@ raw_data:
     desc: "POI từ OpenStreetMap theo subzone"
     columns: [SUBZONE_C, SUBZONE_N, amenity, leisure, office, public_transport, shop, tourism]
 
+  - file: sub_zone/data_sgp_subzone.shp (+ .shx, .dbf)
+    desc: "Bản đồ phân vùng subzone của Singapore (boundary geometries)"
+
 # ==================================================
 # PIPELINE: Script → Data Output → Report Section
 # ==================================================
 
 pipeline:
 
-  # ─── TABLE 1: Micro-scale (303 subzones) + Block Bootstrap CI ───
-  - id: table1
+  # ─── TABLE 1: Micro-scale (303 subzones) + Block Bootstrap CI (40 Groups) ───
+  - id: table1_micro
     report_section: "4.1"
     report_table: "Table 1"
     status: VERIFIED
     scripts:
       - compare_distribution_formular.py    # tính BIC, R², KS per subzone
-      - bootstrap_block_table1.py           # block bootstrap 95% CI
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv]
+      - bootstrap_block_table1_40groups.py  # block bootstrap 95% CI (n=40 blocks)
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv, singapore_40_regions.csv]
     outputs:
       data:
         - zone_distribution_metrics.csv     # per-subzone per-model metrics
-        - bootstrap_table1_ci.csv           # 95% CI from 1000 bootstrap iterations
+        - bootstrap_table1_ci_40groups.csv # 95% CI from 40-group blocks
       figures:
-        - zone_distribution_metrics.png
-        - zone_distribution_metrics_best.png
         - bootstrap_table1_distributions.png
     numbers_in_report:
-      - "Lognormal BIC Best = 28.05%, 95% CI [14.69, 35.67]"
-      - "Lognormal Mean R² = 0.8199, 95% CI [0.7955, 0.8456]"
-      - "SPL Mean R² = 0.6998, 95% CI [0.6613, 0.7254]"
-      - "R² CIs do NOT overlap → P(LN > SPL) = 100%"
+      - "Lognormal BIC Best = 28.05%, 95% CI [16.45, 36.30]"
+      - "Lognormal Mean R² = 0.8199, 95% CI [0.7898, 0.8397]"
     bootstrap:
-      method: "Block bootstrap, 5 district-blocks, 1000 iterations"
-      blocks: [Central, East, North, North-East, West]
+      method: "Block bootstrap, 40 group-blocks, 1000 iterations"
 
   # ─── TABLE 2: Macro-scale (5 districts) ───
-  - id: table2
+  - id: table2_macro
     report_section: "4.2"
     report_table: "Table 2"
     status: VERIFIED
@@ -85,67 +83,65 @@ pipeline:
     inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv]
     outputs:
       data: district_distribution_metrics.csv
-      figures: [district_distribution_metrics.png, district_distribution_metrics_best.png]
+      figures: [district_distribution_metrics.png, bic_logic_illustration.png]
     numbers_in_report:
       - "SPL BIC Best = 40.0%"
-      - "TLF KS-stat = 0.0465"
+      - "Lognormal Mean R² = 0.9307"
 
-  # ─── TABLE 3: POI Efficiency Φ(d) ───
-  - id: table3_global
+  # ─── TABLE 3: Intermediate-scale & Scale Comparison ───
+  - id: table3_scale_comparison
     report_section: "4.3"
-    report_table: "Table 3 (Global row)"
+    report_table: "Table 3"
     status: VERIFIED
-    script: analyze_poi_attraction.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson]
+    scripts:
+      - group_subzones.py                   # Phân chia 40 groups
+      - plot_regions.py                     # Vẽ bản đồ 40 groups
+      - compare_distribution_40groups.py    # Tính metrics thang 40 groups
+    inputs: [sub_zone/data_sgp_subzone.shp, district_zone.csv, data_trip_sum.csv]
     outputs:
-      data: poi_analysis_results.csv
-      figures: [poi_attraction_analysis.png]
+      data:
+        - singapore_40_regions.csv          # Mapping 303 subzones -> 40 groups
+        - group_40_distribution_metrics.csv # Metrics per group
+      figures:
+        - singapore_40_regions.png          # Bản đồ Hình 1
+        - group_40_distribution_comparison.png # Biểu đồ Hình 3
     numbers_in_report:
-      - "Global R² Lognormal = 0.9769"
-      - "Global R² SPL = 0.9768"
-      - "n bins = 43"
+      - "Lognormal BIC %: 28% -> 20.6% -> 0%"
+      - "Mean R² (40 Groups): LN=0.8370, SPL=0.7739, Gamma=0.8289"
 
-  - id: table3_districts
-    report_section: "4.3"
-    report_table: "Table 3 (District rows)"
-    status: VERIFIED
-    script: analyze_poi_attraction_districts.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson, district_zone.csv]
-    outputs:
-      data: district_poi_results.csv
-      figures: [district_poi_analysis.png]
-    numbers_in_report:
-      - "Mean R²_LN = 0.8071, Mean R²_SPL = 0.7385"
-
-  # ─── TABLE 4: Facebook Data Validation ───
-  - id: table4
+  # ─── TABLE 4: POI Efficiency Φ(d) ───
+  - id: table4_efficiency
     report_section: "4.4"
     report_table: "Table 4"
     status: VERIFIED
-    script: compare_fb_all_models.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv, fb_agg.csv]
+    scripts: [analyze_poi_attraction.py, analyze_poi_attraction_districts.py]
+    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson]
     outputs:
-      data: fb_vs_all_models.csv
-    note: "Dùng làm data validation (GT vs FB), không dùng để so sánh mô hình vì FB chỉ có 4 bins thô."
+      data: [poi_analysis_results.csv, district_poi_results.csv]
+      figures: [poi_attraction_analysis.png]
     numbers_in_report:
-      - "Mean EMD GT vs Facebook = 0.2643"
-      - "North-East: 0.2177, West: 0.2344, East: 0.2544, North: 0.2907, Central: 0.3245"
+      - "Mean R²_LN (POI Normalization) = 0.8071"
 
-  # ─── TABLE 5: Threshold Transition Analysis ───
-  - id: table5
+  # ─── TABLE 5: Facebook Data Validation ───
+  - id: table5_facebook
     report_section: "4.5"
     report_table: "Table 5"
     status: VERIFIED
+    script: compare_fb_all_models.py
+    outputs:
+      data: fb_vs_all_models.csv
+    numbers_in_report:
+      - "Mean EMD GT vs Facebook = 0.2643"
+
+  # ─── TABLE 6: Threshold Analysis ───
+  - id: table6_threshold
+    report_section: "4.6"
+    report_table: "Table 6"
+    status: VERIFIED
     script: generate_table5_threshold_analysis.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
     outputs:
       data: table5_threshold_analysis.csv
       figures: [threshold_transition.png]
-    numbers_in_report:
-      - "LN thắng SPL ở toàn bộ 60 cửa sổ (0–30 km)"
-      - "Không tồn tại ngưỡng chuyển pha d* trên trục khoảng cách"
-      - "0–0.5km: R²_LN=0.9980, R²_SPL=-0.0023"
-      - "0–30km: R²_LN=0.9179, R²_SPL=0.7181"
 
   # ─── FIGURES (không gắn table) ───
   - id: fig_distribution_comparison
@@ -191,8 +187,17 @@ verification_commands:
   table1_bootstrap: |
     python3 -c "
     import pandas as pd
-    ci = pd.read_csv('bootstrap_table1_ci.csv')
+    ci = pd.read_csv('bootstrap_table1_ci_40groups.csv')
     print(ci.to_string(index=False))
+    "
+
+  table3_scale: |
+    python3 -c "
+    import pandas as pd
+    m40 = pd.read_csv('group_40_distribution_metrics.csv')
+    print(m40.groupby('Model')['R2'].mean())
+    best = m40[m40['Is_Best_BIC']==True]
+    print(best['Model'].value_counts() / len(best) * 100)
     "
 
   table2: |
