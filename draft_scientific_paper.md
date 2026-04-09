@@ -10,10 +10,12 @@ date: "April 2026"
 Nghiên cứu này muốn tìm kiếm mô hình phân phối di chuyển thông dụng phù hợp với hành vi và cấu trúc hạ tầng tại Singapore. Thông qua phân tích 5 mô hình phân phối thường được áp dụng trong lĩnh vực human mobility, rút ra những kết quả sau: Ở cấp độ vi mô (subzone), dữ liệu tuân theo phân phối **Lognormal**, phản ánh thói quen di chuyển ngắn đa mục đích của cá thể. Ở cấp độ vĩ mô (district), sức hút từ hạ tầng đô thị (POI) lấn át hành vi cá nhân, dẫn đến sự lấn át của phân phối **Shifted Power-Law**. Việc chuẩn hóa dữ liệu theo mật độ POI (Hiệu suất di chuyển $\Phi(d)$) đạt độ khớp $R^2 = 0.9769$, xác nhận rằng cấu trúc hạ tầng là động lực chính của quy luật di chuyển phụ thuộc quy mô.
 
 ## 2. Introduction & Hypothesis
-Hành vi di chuyển con người trong đô thị thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén (Compact City) như Singapore, các giả thuyết được đặt ra là tồn tại một sự chuyển pha dựa trên quy mô quan sát:
-1. **Quy mô Vi mô (Bottom-up):** Mô hình phân phối xác suất di chuyển phản ánh thói quen di chuyển ngắn của cá thể (Local optimization).
-2. **Quy mô Vĩ mô (Top-down):** Ở quy mô lớn hơn, mô hình sẽ bị thay đổi do bị chi phối bởi "Lực hấp dẫn đô thị" (Urban Gravity) từ các trung tâm hạ tầng.
-3. Quy luật TLF sẽ không còn đạt hiệu quả cao với các đô thị lớn nhưng diện tích nhỏ như Singapore do các di chuyển dài bị dứt đoạn với hạn chế địa lý.
+Hành vi di chuyển con người trong đô thị thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén (Compact City) như Singapore, các giả thuyết được đặt ra là:
+1. Tồn tại một sự chuyển pha dựa trên bán kính di chuyển.
+2. Có sự chuyển dịch dựa trên quy mô quan sát:
+    - **Quy mô Vi mô (Bottom-up):** Mô hình phân phối xác suất di chuyển phản ánh thói quen di chuyển ngắn của cá thể (Local optimization).
+    - **Quy mô Vĩ mô (Top-down):** Ở quy mô lớn hơn, mô hình sẽ bị thay đổi do bị chi phối bởi "Lực hấp dẫn đô thị" (Urban Gravity) từ các trung tâm hạ tầng.
+3. Quy luật TLF sẽ không còn đạt hiệu quả cao với các đô thị lớn nhưng diện tích nhỏ như Singapore do các di chuyển dài bị dứt đoạn với hạn chế địa lý trong nhiều quy mô quan sát.
 
 Để cung cấp cái nhìn tổng quan về các mô hình sẽ được phân tích, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
 
@@ -40,11 +42,15 @@ Tiêu chuẩn đánh giá:
 
 Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d_j)$. Khoảng cách được chia thành **50 bins đều nhau** từ 0.1 km đến 50 km ($\Delta d \approx 1$ km). Với mỗi bin $d_j$:
 
-$$T(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{COUNT}(O,K), \qquad A(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{POI}(K)$$
+$$T(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{T}(O,K)$$ 
+
+$$A(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{POI}(O,K)$$
 
 $$\Phi(d_j) = \frac{T(d_j)}{A(d_j)}$$
 
-Trong đó $T(d_j)$ là tổng số chuyến đi và $A(d_j)$ là tổng POI của các subzone đích, gom theo bin khoảng cách $d_j$. Phép chia này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
+$  T(d_j)  $: Tổng số chuyến đi (trips) của tất cả các cặp nguồn–đích $  (O,K)  $ có khoảng cách rơi vào bin $  d_j  $.
+$  A(d_j)  $: Tổng số POI (Points of Interest) của các subzone đích $  K  $ trong cùng bin khoảng cách $  d_j  $.
+$  \Phi(d_j)  $: Hiệu suất di chuyển của bin $  d_j  $, cho phép tách biệt “lực ma sát” của khoảng cách khỏi “lực hút” của mật độ hạ tầng.
 
 ## 4. Results: The Scale-Transition
 
@@ -109,26 +115,80 @@ Kết quả chuẩn hóa mang lại một phát hiện quan trọng: Nếu như 
 ![POI Attraction Analysis](poi_attraction_analysis.png)
 *Hình 2. Hiệu suất di chuyển $\Phi(d)$ sau khi chuẩn hóa theo POIs. Việc loại bỏ "lực hấp dẫn đô thị" giúp phục hồi đặc tính Lognormal của hành vi cá nhân.*
 
-### 4.4. Xác thực qua Facebook Mobility Data
-Để đánh giá độ tin cậy ngoại biên, chúng tôi so sánh phân phối SPL (mô hình tốt nhất ở cấp vĩ mô) với dữ liệu thực tế từ Facebook Mobility Data cho từng quận.
+### 4.4. Xác thực Dữ liệu qua Facebook Mobility Data
 
-**Table 4.** So sánh Shifted Power-Law vs Facebook Ground-Truth (n = 5 districts).
+Để đảm bảo dữ liệu Ground Truth (GT) không bị lệch mẫu, chúng tôi so sánh phân phối khoảng cách GT với dữ liệu độc lập từ Facebook Mobility Data, sử dụng khoảng cách Wasserstein (EMD) trên 4 distance bins chuẩn Facebook: (0,1), [1,10), [10,100), 100+ km.
 
-*Nguồn: `fb_vs_pl.csv` ← `compare_fb_pl.py`*
+**Table 4.** Wasserstein (EMD) giữa Ground Truth và Facebook Mobility Data (n = 5 districts).
 
-| District   | MAE    | RMSE   | EMD (Wasserstein) | KL Divergence |
-|------------|--------|--------|--------------------|---------------|
-| North-East | 0.1540 | 0.1943 | 0.1123             | 0.4830        |
-| East       | 0.1553 | 0.1879 | 0.0583             | 0.6585        |
-| West       | 0.1425 | 0.1739 | 0.0756             | 0.4263        |
-| Central    | 0.1446 | 0.1853 | 0.1135             | 0.3998        |
-| North      | 0.1385 | 0.1784 | 0.0549             | 0.4242        |
-| **Mean**   | **0.1470** | **0.1840** | **0.0829**     | **0.4784**    |
+*Nguồn: `fb_vs_all_models.csv` ← `compare_fb_all_models.py`*
 
-Kết quả EMD trung bình = 0.0829 xác nhận SPL là mô hình phù hợp để mô tả phân phối di chuyển vĩ mô khi so sánh với dữ liệu di chuyển thực tế từ Facebook.
+| District   | EMD (GT vs Facebook) |
+|------------|----------------------|
+| North-East | 0.2177               |
+| West       | 0.2344               |
+| East       | 0.2544               |
+| North      | 0.2907               |
+| Central    | 0.3245               |
+| **Mean**   | **0.2643**           |
 
-## 5. Discussion: From Individual Behavior to Urban Gravity
-Sự chuyển dịch phân phối phản ánh một nhận định dứt khoát về địa lý dân cư:
+EMD trung bình = 0.2643 cho thấy phân phối GT và Facebook **nhất quán về hình dạng tổng thể**, xác nhận dữ liệu không bị lệch một cách hệ thống. Lưu ý: Facebook chỉ cung cấp 4 bins rất thô, nên EMD không phù hợp để so sánh chi tiết giữa các mô hình — chỉ dùng làm kiểm tra tính nhất quán nguồn dữ liệu.
+
+### 4.5. Phân tích Ngưỡng Chuyển pha (Transition Threshold Analysis)
+
+Để xác định điểm giao cắt giữa Lognormal (vi mô) và SPL (vĩ mô), chúng tôi tính $R^2$ của cả hai mô hình trên các cửa sổ khoảng cách tích lũy $[0, d_{max}]$ với $d_{max} = 0.5, 1.0, \ldots, 30.0$ km.
+
+**Table 5.** Cumulative distance window analysis: $R^2$ of Lognormal vs SPL.
+
+*Nguồn: `table5_threshold_analysis.csv` ← `generate_table5_threshold_analysis.py`*
+
+| Distance Window | $R^2$ (Lognormal) | $R^2$ (SPL) | Winner | % Data |
+|-----------------|-------------------|-------------|--------|--------|
+| 0 – 0.5 km      | **0.9980**        | -0.0023     | LN     |   0.2% |
+| 0 – 1.0 km      | **0.9862**        | -0.0032     | LN     |   6.9% |
+| 0 – 2.0 km      | **0.7667**        | -0.0115     | LN     |  28.2% |
+| 0 – 3.0 km      | **0.7376**        | -0.0081     | LN     |  41.6% |
+| 0 – 5.0 km      | **0.8458**        |  0.0926     | LN     |  56.5% |
+| 0 – 10.0 km     | **0.8623**        |  0.3217     | LN     |  78.2% |
+| 0 – 15.0 km     | **0.8812**        |  0.4789     | LN     |  91.7% |
+| 0 – 20.0 km     | **0.8874**        |  0.5479     | LN     |  98.2% |
+| 0 – 25.0 km     | **0.8974**        |  0.6007     | LN     |  99.5% |
+| 0 – 30.0 km     | **0.9179**        |  0.7181     | LN     |  99.9% |
+
+![Threshold Transition](threshold_transition.png)
+*Hình 3. $R^2$ theo cửa sổ khoảng cách tích lũy (0–30 km). Lognormal (đỏ) chiếm ưu thế tại mọi cửa sổ, không có giao cắt với SPL (xanh).*
+
+**Phát hiện:** Khác với giả thuyết ban đầu, **không tồn tại ngưỡng chuyển pha $d^*$ rõ ràng** trên trục khoảng cách. Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy (0–30 km, bao phủ 99.9% tổng chuyến đi). Khoảng cách giữa $R^2$ hai mô hình thu hẹp dần từ ~1.0 (tại 0.5 km) xuống ~0.2 (tại 30 km), nhưng không bao giờ giao cắt. Điều này cho thấy sự chuyển dịch từ Lognormal sang SPL (Table 1 → Table 2) không phải do khoảng cách, mà do **cấp độ tổng hợp không gian** (subzone → district). Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được tốt hơn.
+
+## 5. Discussion
+
+### 5.1. Đánh giá các Giả thuyết
+
+**Giả thuyết 1 — Tồn tại sự chuyển pha dựa trên bán kính di chuyển:** ❌ **BÁC BỎ**
+
+Table 5 cho thấy Lognormal thắng SPL ở toàn bộ 60 cửa sổ tích lũy từ 0–30 km (bao phủ 99.9% chuyến đi). $R^2$ của Lognormal luôn > 0.72, trong khi SPL chỉ đạt tối đa 0.72 tại 30 km. Không tồn tại ngưỡng chuyển pha $d^*$ trên trục khoảng cách.
+
+**Giả thuyết 2 — Sự chuyển dịch dựa trên quy mô quan sát:** ✅ **XÁC NHẬN**
+
+| | Cấp Vi mô (Subzone) | Cấp Vĩ mô (District) |
+|---|---|---|
+| Mô hình tốt nhất (BIC) | Lognormal (28.05%) — Table 1 | SPL (40%) — Table 2 |
+| $R^2$ cao nhất | Lognormal (0.8199) | Lognormal (0.9307) nhưng BIC = 0% |
+| Sau POI normalization | — | Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385) — Table 3 |
+
+Sự chuyển dịch xảy ra khi thay đổi **cấp độ tổng hợp không gian** (subzone → district), không phải khi thay đổi bán kính. Khi gom dữ liệu theo district, lực hút hạ tầng liên quận tạo ra đuôi nặng mà SPL bắt được, nhưng sau khi chuẩn hóa POI, Lognormal lấy lại ưu thế — xác nhận SPL phản ánh hạ tầng, Lognormal phản ánh hành vi cá nhân.
+
+**Giả thuyết 3 — TLF không hiệu quả với Singapore:** ✅ **XÁC NHẬN**
+
+| Cấp độ | TLF BIC Best | TLF $R^2$ | So sánh |
+|---|---|---|---|
+| Vi mô (Table 1) | **3.30%** (thấp nhất trong 5 mô hình) | 0.7026 | Thua LN, SPL, Gamma, Exp |
+| Vĩ mô (Table 2) | **0.0%** | 0.8987 | Thua SPL, Exp, Gamma |
+
+TLF — mô hình phổ biến nhất trong literature — hoàn toàn thất bại tại cả hai cấp độ ở Singapore. Nguyên nhân có thể do giới hạn địa lý (~50 km đường chéo) cắt đuôi phân phối Lévy trước khi đặc tính scale-free kịp biểu hiện.
+
+### 5.2. Cơ chế Chuyển dịch
+
 - **Cấp độ cá nhân:** Người dân ưu tiên các tiện ích gần nhà ("tiện lợi cục bộ"), tạo ra hình dáng Lognormal với đỉnh rõ rệt.
 - **Cấp độ hệ thống:** Các trung tâm trọng điểm (CBD, Jurong East, Tampines) bẻ cong ý chí cá nhân. Quy hoạch đa cực (Polycentric) và mạng lưới MRT dày đặc giúp sức hút trung tâm lan tỏa bền vững theo quy luật lũy thừa (SPL).
 
@@ -138,7 +198,7 @@ Nghiên cứu khẳng định quy luật di chuyển tại Singapore là **phụ
 1. **Cấp Vi mô (Subzone):** **Lognormal** chiếm ưu thế (BIC Best = 28.05%, $R^2$ = 0.8199), phản ánh thói quen tối ưu hóa cục bộ của cá nhân.
 2. **Cấp Vĩ mô (District):** **Shifted Power-Law** chiếm ưu thế (BIC Best = 40%, KS-stat = 0.0474), phản ánh lực hút hạ tầng đô thị.
 3. **Chuẩn hóa POI:** Sau khi khử sức hút hạ tầng ($\Phi(d)$), Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385 trung bình 5 quận), chứng minh SPL chỉ là biểu hiện ngoài do hạ tầng.
-4. **Xác thực ngoại biên:** SPL có EMD trung bình = 0.0829 so với Facebook Mobility Data.
+4. **Xác thực dữ liệu:** Ground Truth nhất quán với Facebook Mobility Data (EMD trung bình = 0.2643), xác nhận dữ liệu không bị lệch mẫu.
 
 ---
 ## 7. References
