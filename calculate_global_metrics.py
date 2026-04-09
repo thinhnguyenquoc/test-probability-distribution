@@ -33,15 +33,20 @@ def run_global_analysis():
         r_safe = np.clip(r, 1e-5, None)
         return C * (r_safe**(alpha - 1)) * np.exp(-r_safe / lam)
 
+    def tlf_dist(r, C, r0, beta, kappa):
+        r_safe = np.clip(r, 1e-5, None)
+        return C * (r_safe + r0)**(-beta) * np.exp(-r_safe / kappa)
+
     models = {
         'Exponential': (exp_dist, [1, 5], 2, ([0, 0.1], [np.inf, 100])),
         'Lognormal': (lognormal_dist, [1, 1, 1], 3, ([0, -10, 0.1], [np.inf, 10, 10])),
         'Gamma': (gamma_dist, [1, 2, 2], 3, ([0, 0.1, 0.1], [np.inf, 100, 100])),
-        'Shifted Power-Law': (shift_power_law, [1, 1, 2], 3, ([0, 0.1, 0.1], [np.inf, 50, 20]))
+        'Shifted Power-Law': (shift_power_law, [1, 1, 2], 3, ([0, 0.1, 0.1], [np.inf, 50, 20])),
+        'Truncated Levy Flight': (tlf_dist, [1, 1, 2, 10], 4, ([0, 0.1, 0.1, 0.1], [np.inf, 50, 20, 100]))
     }
     
-    print(f"| Model | R2 | BIC |")
-    print(f"|---|---|---|")
+    print(f"| Model | R2 | BIC | KS-stat |")
+    print(f"|---|---|---|---|")
     for name, (func, p0, k, bounds) in models.items():
         try:
             popt, _ = curve_fit(func, x, y, p0=p0, bounds=bounds, maxfev=50000)
@@ -51,9 +56,13 @@ def run_global_analysis():
             y_fit_norm = y_fit / np.sum(y_fit)
             ll = np.sum((y * total_trips) * np.log(np.clip(y_fit_norm, 1e-300, 1)))
             bic = k * np.log(total_trips) - 2 * ll
-            print(f"| {name} | {r2:.4f} | {bic:,.0f} |")
+            # KS
+            y_cdf = np.cumsum(y / np.sum(y))
+            fit_cdf = np.cumsum(y_fit_norm)
+            ks = np.max(np.abs(y_cdf - fit_cdf))
+            print(f"| {name} | {r2:.4f} | {bic:,.0f} | {ks:.4f} |")
         except Exception as e:
-            print(f"| {name} | Error: {e} | - |")
+            print(f"| {name} | Error: {e} | - | - |")
 
 if __name__ == "__main__":
     run_global_analysis()
