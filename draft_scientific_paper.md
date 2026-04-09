@@ -38,11 +38,13 @@ Tiêu chuẩn đánh giá:
 - **$R^2$**: Tỷ lệ phương sai giải thích
 - **KS-statistic**: Kiểm định Kolmogorov-Smirnov
 
-Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d)$:
+Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d_j)$. Khoảng cách được chia thành **50 bins đều nhau** từ 0.1 km đến 50 km ($\Delta d \approx 1$ km). Với mỗi bin $d_j$:
 
-$$\Phi(d) = \frac{P(d)}{A(d)}$$
+$$T(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{COUNT}(O,K), \qquad A(d_j) = \sum_{\substack{(O,K):\\ dist(O,K) \in d_j}} \text{POI}(K)$$
 
-Trong đó $A(d)$ là tổng số POI hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
+$$\Phi(d_j) = \frac{T(d_j)}{A(d_j)}$$
+
+Trong đó $T(d_j)$ là tổng số chuyến đi và $A(d_j)$ là tổng POI của các subzone đích, gom theo bin khoảng cách $d_j$. Phép chia này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.
 
 ## 4. Results: The Scale-Transition
 
@@ -135,7 +137,7 @@ Nghiên cứu khẳng định quy luật di chuyển tại Singapore là **phụ
 
 1. **Cấp Vi mô (Subzone):** **Lognormal** chiếm ưu thế (BIC Best = 28.05%, $R^2$ = 0.8199), phản ánh thói quen tối ưu hóa cục bộ của cá nhân.
 2. **Cấp Vĩ mô (District):** **Shifted Power-Law** chiếm ưu thế (BIC Best = 40%, KS-stat = 0.0474), phản ánh lực hút hạ tầng đô thị.
-3. **Chuẩn hóa POI:** Sau khi khử sức hút hạ tầng ($\Phi(d) = P(d)/A(d)$), Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385 trung bình 5 quận), chứng minh SPL chỉ là biểu hiện ngoài do hạ tầng.
+3. **Chuẩn hóa POI:** Sau khi khử sức hút hạ tầng ($\Phi(d)$), Lognormal lấy lại ưu thế ($R^2$ = 0.8071 vs SPL = 0.7385 trung bình 5 quận), chứng minh SPL chỉ là biểu hiện ngoài do hạ tầng.
 4. **Xác thực ngoại biên:** SPL có EMD trung bình = 0.0829 so với Facebook Mobility Data.
 
 ---
