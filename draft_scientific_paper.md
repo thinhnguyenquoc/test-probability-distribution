@@ -11,11 +11,26 @@ Nghiên cứu này làm rõ bước chuyển dịch của động lực học đ
 
 ## 2. Introduction & Hypothesis
 Di chuyển con người thường được coi là tuân theo quy luật phổ quát Truncated Lévy Flight (TLF). Tuy nhiên, tại các đô thị nén như Singapore, chúng tôi đặt giả thuyết về một sự chuyển pha dựa trên quy mô quan sát:
-1. **Quy mô Vi mô (Bottom-up):** Di chuyển là kết quả của thói quen cá nhân (Local optimization).
-2. **Quy mô Vĩ mô (Top-down):** Dòng chảy bị chi phối bởi "Lực hấp dẫn đô thị" (Urban Gravity) từ các trung tâm hạ tầng.
+1. **Quy mô Vi mô (Bottom-up):** Mô hình phân phối xác suất di chuyển phản ánh thói quen di chuyển ngắn của cá thể (Local optimization).
+2. **Quy mô Vĩ mô (Top-down):** Ở quy mô lớn hơn, mô hình sẽ bị thay đổi do bị chi phối bởi "Lực hấp dẫn đô thị" (Urban Gravity) từ các trung tâm hạ tầng.
+3. Quy luật TLF sẽ không còn đạt hiệu quả cao với các đô thị lớn nhưng diện tích nhỏ như Singapore do các di chuyển dài bị dứt đoạn với hạn chế địa lý.
+
+Để cung cấp cái nhìn tổng quan về các mô hình sẽ được phân tích, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
+
+**Table 0.** Summary of candidate mobility models ranked by tail strength.
+
+| Rank (Tail Strength) | Model                           | Probability Distribution                                                  | Tail Behavior              | Generative Interpretation                           | Strength                                     | Weakness                                 |
+| -------------------- | ------------------------------- | ------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
+| 1                    | **Exponential**                 | $P(r)=\lambda e^{-\lambda r}$                                             | Very short tail            | Random movement with constant decay probability     | Simple baseline model                        | Cannot capture long-distance mobility    |
+| 2                    | **Gamma**                       | $P(r)=\frac{r^{k-1}e^{-r/\theta}}{\Gamma(k)\theta^k}$                     | Short exponential tail     | Aggregation of multiple stochastic travel processes | Flexible near short distances                | Tail still decays rapidly                |
+| 3                    | **Lognormal**                   | $P(r)=\frac{1}{r\sigma\sqrt{2\pi}}\exp(-\frac{(\ln r-\mu)^2}{2\sigma^2})$ | Moderately heavy tail      | Multiplicative behavioral processes                 | Empirically fits many mobility datasets      | Weak theoretical mobility interpretation |
+| 4                    | **Truncated Lévy Flight (TLF)** | $P(r) \propto r^{-\beta} \exp(-\lambda r)$                               | Heavy tail with truncation | Lévy flight mobility constrained by spatial limits  | Strong theoretical basis in mobility studies | Sensitive to truncation scale            |
+| 5                    | **Shifted Power Law (SPL)**     | $P(r)\propto (r+r_0)^{-\beta}$                                            | Heaviest tail              | Scale-free mobility with short-distance correction  | Captures heavy-tail structure well           | May overestimate long-distance trips     |
+
+![Distribution Comparison](distribution_comparison.png)
 
 ## 3. Methodology
-Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình (Lognormal, SPL, TLF, Gamma, Exponential). 
+Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình: Lognormal, SPL, TLF, Gamma, Exponential. 
 Kết hợp sử dụng dữ liệu từ **OpenStreetMap (OSM)** để tính toán **Hiệu suất di chuyển** $\Phi(d)$:
 $$\Phi(d) = \frac{P(d)}{A(d)}$$
 Trong đó $A(d)$ là tổng số điểm tin cậy (POI) hiện có ở khoảng cách $d$. Điều này cho phép tách biệt "lực ma sát" của khoảng cách khỏi "lực hút" của mật độ hạ tầng.

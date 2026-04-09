@@ -54,4 +54,9 @@ plt.legend()
 plt.grid(True, which="both", ls="-", alpha=0.2)
 
 plt.tight_layout()
+
+# Xuất ra hình png
+plt.savefig('distribution_comparison.png', dpi=300)
+print("Đã lưu hình tại: distribution_comparison.png")
+
 plt.show()
