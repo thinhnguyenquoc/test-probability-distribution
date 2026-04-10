@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import warnings
@@ -76,35 +76,43 @@ for district, group in df.groupby('district_id'):
     
     for name, (func, p0, k, bounds) in models.items():
         try:
-            popt, _ = curve_fit(func, x_data, y_prob, p0=p0, bounds=bounds, maxfev=15000)
+            def nll(params):
+                y_raw = func(x_data, *params)
+                if np.sum(y_raw) <= 0 or np.any(y_raw < 0): return 1e18
+                y_pmf = y_raw / np.sum(y_raw)
+                return -np.sum(y_counts * np.log(np.clip(y_pmf, 1e-300, 1)))
+
+            bnds = list(zip(bounds[0], bounds[1]))
+            res = minimize(nll, p0, method='L-BFGS-B', bounds=bnds)
+            if not res.success: res = minimize(nll, p0, method='Nelder-Mead', bounds=bnds)
+            
+            popt = res.x
             y_fit_raw = func(x_data, *popt)
+            y_fit_pmf = y_fit_raw / np.sum(y_fit_raw)
             
-            if np.any(np.isnan(y_fit_raw)) or np.any(np.isinf(y_fit_raw)):
-                continue
-                
             r2 = r2_score_custom(y_prob, y_fit_raw)
-            
-            sum_fit = np.sum(y_fit_raw)
-            if sum_fit <= 0: continue
-            y_fit_pmf = y_fit_raw / sum_fit
-            
             model_cdf = np.cumsum(y_fit_pmf)
             ks_stat = np.max(np.abs(empirical_cdf - model_cdf))
             
-            y_fit_safe = np.clip(y_fit_pmf, 1e-300, 1)
-            log_likelihood = np.sum(y_counts * np.log(y_fit_safe))
-            
+            log_likelihood = -res.fun
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(total_trips) - 2 * log_likelihood
             
+            # AD Stat
+            fit_cdf_diff = np.diff(np.insert(model_cdf, 0, 0))
+            ad_num = (empirical_cdf - model_cdf)**2
+            ad_den = np.clip(model_cdf * (1 - model_cdf), 1e-6, None)
+            ad_stat = total_trips * np.sum((ad_num / ad_den) * fit_cdf_diff)
+
             district_res[name] = {
-                'R2': round(r2, 4),
                 'KS_Stat': round(ks_stat, 4),
+                'AD_Stat': round(ad_stat, 4),
                 'Log_Likelihood': round(log_likelihood, 2),
                 'AIC': round(aic, 2),
                 'BIC': round(bic, 2),
                 'k': k
             }
+
         except:
             pass
             
@@ -133,11 +141,12 @@ for district, group in df.groupby('district_id'):
             'Total_Trips': total_trips,
             'Model': name,
             'k_params': metrics['k'],
-            'R2': metrics['R2'],
             'KS_Stat': metrics['KS_Stat'],
+            'AD_Stat': metrics['AD_Stat'],
             'Log_Likelihood': metrics['Log_Likelihood'],
             'AIC': metrics['AIC'],
             'BIC': metrics['BIC'],
+
             'LR_Stat_SPL_vs_TLF': lr_stat if name in ['Shifted Power-Law', 'Truncated Lévy Flight'] else np.nan,
             'p_value_LR': p_value if name in ['Shifted Power-Law', 'Truncated Lévy Flight'] else np.nan,
             'Is_Best_BIC': (name == best_model)
@@ -187,7 +196,7 @@ if len(common_districts) > 0:
     spl = spl.loc[common_districts]
     lgn = lgn.loc[common_districts]
 
-    avg_r2 = [spl['R2'].mean(), lgn['R2'].mean()]
+    avg_ad = [spl['AD_Stat'].mean(), lgn['AD_Stat'].mean()]
     avg_ks = [spl['KS_Stat'].mean(), lgn['KS_Stat'].mean()]
 
     ks_wins_spl = np.sum(spl['KS_Stat'] < lgn['KS_Stat'])
@@ -197,21 +206,21 @@ if len(common_districts) > 0:
     labels = ['Shifted Power-Law', 'Lognormal']
     colors_comp = ['#aec7e8', '#ffbb78']
 
-    axes[0].bar(labels, avg_r2, color=colors_comp, edgecolor='black')
-    axes[0].set_title('Trung bình R² trên các Quận', fontsize=14, pad=15)
-    axes[0].set_ylabel('Điểm R²')
-    for i, v in enumerate(avg_r2):
-        axes[0].text(i, v + 0.02, f"{v:.4f}", ha='center', fontweight='bold', fontsize=12)
-    axes[0].set_ylim(0, 1.05)
+    axes[0].bar(labels, avg_ad, color=colors_comp, edgecolor='black')
+    axes[0].set_title('Average AD-Stat across Districts', fontsize=14, pad=15)
+    axes[0].set_ylabel('AD-Stat (Lower is Better)')
+    for i, v in enumerate(avg_ad):
+        axes[0].text(i, v + 0.05, f"{v:.2f}", ha='center', fontweight='bold', fontsize=12)
 
     axes[1].bar(labels, avg_ks, color=colors_comp, edgecolor='black')
-    axes[1].set_title('Trung bình KS-Test trên các Quận', fontsize=14, pad=15)
-    axes[1].set_ylabel('Khoảng cách hình học KS (Thấp tốt hơn)')
+    axes[1].set_title('Average KS-Stat across Districts', fontsize=14, pad=15)
+    axes[1].set_ylabel('KS Distance (Lower is Better)')
     for i, v in enumerate(avg_ks):
         axes[1].text(i, v + 0.005, f"{v:.4f}", ha='center', fontweight='bold', fontsize=12)
 
     axes[2].pie([ks_wins_spl, ks_wins_lgn], labels=labels, autopct='%1.1f%%', startangle=140, colors=colors_comp, wedgeprops={'edgecolor': 'black'})
-    axes[2].set_title('Tỷ lệ thắng 1-vs-1 (Theo KS-Test)', fontsize=14, pad=15)
+    axes[2].set_title('Head-to-Head Win Rate (KS-Stat)', fontsize=14, pad=15)
+
 
     plt.tight_layout()
     plt.savefig('district_distribution_metrics_best.png', dpi=300)

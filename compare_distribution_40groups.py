@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import warnings
@@ -76,34 +76,43 @@ for group_id, group_data in df.groupby('group_id'):
     
     for name, (func, p0, k, bounds) in models.items():
         try:
-            popt, _ = curve_fit(func, x_data, y_prob, p0=p0, bounds=bounds, maxfev=15000)
+            def nll(params):
+                y_raw = func(x_data, *params)
+                if np.sum(y_raw) <= 0 or np.any(y_raw < 0): return 1e18
+                y_pmf = y_raw / np.sum(y_raw)
+                return -np.sum(y_counts * np.log(np.clip(y_pmf, 1e-300, 1)))
+
+            bnds = list(zip(bounds[0], bounds[1]))
+            res = minimize(nll, p0, method='L-BFGS-B', bounds=bnds)
+            if not res.success: res = minimize(nll, p0, method='Nelder-Mead', bounds=bnds)
+            
+            popt = res.x
             y_fit_raw = func(x_data, *popt)
+            y_fit_pmf = y_fit_raw / np.sum(y_fit_raw)
             
-            if np.any(np.isnan(y_fit_raw)) or np.any(np.isinf(y_fit_raw)):
-                continue
-                
             r2 = r2_score_custom(y_prob, y_fit_raw)
-            sum_fit = np.sum(y_fit_raw)
-            if sum_fit <= 0: continue
-            y_fit_pmf = y_fit_raw / sum_fit
-            
             model_cdf = np.cumsum(y_fit_pmf)
             ks_stat = np.max(np.abs(empirical_cdf - model_cdf))
             
-            y_fit_safe = np.clip(y_fit_pmf, 1e-300, 1)
-            log_likelihood = np.sum(y_counts * np.log(y_fit_safe))
-            
+            log_likelihood = -res.fun
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(total_trips) - 2 * log_likelihood
             
+            # AD Stat
+            fit_cdf_diff = np.diff(np.insert(model_cdf, 0, 0))
+            ad_num = (empirical_cdf - model_cdf)**2
+            ad_den = np.clip(model_cdf * (1 - model_cdf), 1e-6, None)
+            ad_stat = total_trips * np.sum((ad_num / ad_den) * fit_cdf_diff)
+
             group_res[name] = {
-                'R2': round(r2, 4),
                 'KS_Stat': round(ks_stat, 4),
+                'AD_Stat': round(ad_stat, 4),
                 'Log_Likelihood': round(log_likelihood, 2),
                 'AIC': round(aic, 2),
                 'BIC': round(bic, 2),
                 'k': k
             }
+
         except:
             pass
             
@@ -112,15 +121,17 @@ for group_id, group_data in df.groupby('group_id'):
         
     best_model = min(group_res.keys(), key=lambda m: group_res[m]['BIC'])
     
+    for name, metrics in group_res.items():
         results.append({
             'group_id': group_id,
             'Total_Trips': total_trips,
             'Model': name,
-            'R2': metrics['R2'],
             'KS_Stat': metrics['KS_Stat'],
+            'AD_Stat': metrics['AD_Stat'],
             'Log_Likelihood': metrics['Log_Likelihood'],
             'AIC': metrics['AIC'],
             'BIC': metrics['BIC'],
+
             'Is_Best_BIC': (name == best_model)
         })
 
