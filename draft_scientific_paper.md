@@ -12,38 +12,6 @@ date: "April 2026"
 
 
 
-## Nomenclature (Ký hiệu và Từ viết tắt)
-
-**Ký hiệu Toán học và Tham số:**
-- $r$: Khoảng cách di chuyển Euclidean (km)
-- $P(r)$: Hàm mật độ xác suất di chuyển (Probability Density Function)
-- $C$: Hằng số chuẩn hóa xác suất (Normalization constant)
-- $\mu, \sigma$: Tham số trung vị và độ lệch chuẩn của phân phối Lognormal
-- $r_0, \beta$: Tham số dịch chuyển (shift) và số mũ (exponent) của SPL và TLF
-- $\lambda, \alpha$: Tham số tỉ lệ (scale) và hình dáng (shape) của phân phối Gamma/Exp
-- $\kappa$: Tham số giới hạn cắt (truncating constant) của Truncated Lévy Flight
-- $k$: Số lượng tham số của mô hình (Number of parameters)
-- $N$: Tổng số chuyến đi quan sát được (Sample size)
-
-**Mô hình và Phân phối (Models):**
-- **LN / Lognormal**: Phân phối Log-chuẩn (Phản ánh thói quen cá nhân)
-- **SPL**: Quy luật lũy thừa có dịch chuyển (Shifted Power-Law)
-- **TLF**: Quy luật Lévy Flight có giới hạn (Truncated Lévy Flight)
-- **Exp / Gamma**: Phân phối hàm mũ và Gamma (Phản ánh sự cộng gộp)
-
-**Chỉ số Thống kê và Đánh giá (Metrics):**
-- **LLH / NLL**: Log-Likelihood và Negative Log-Likelihood
-- **AIC / BIC**: Tiêu chuẩn thông tin Akaike và Bayes (Dùng để chọn mô hình)
-- **BIC Winner (%)**: Tỷ lệ phần trăm số vùng mà mô hình đạt BIC thấp nhất
-- **KS-stat**: Thống kê Kolmogorov-Smirnov (Đo sai lệch hình thái tích lũy)
-- **AD-stat**: Thống kê Anderson-Darling (Đánh giá độ khớp ở phần đuôi)
-- **CI**: Khoảng tin cậy 95% (95% Confidence Interval) tính từ Bootstrap
-
-**Từ viết tắt và Khái niệm (Abbreviations):**
-- **POI**: Point of Interest (Điểm tiện ích đô thị từ OpenStreetMap)
-- **GT**: Ground Truth (Dữ liệu di chuyển thực tế làm chuẩn)
-- **Subzone / Group / District**: Các cấp độ quy mô không gian nghiên cứu
-
 
 ## 2. Introduction & Hypothesis
 ### 2.1. Research Gap (Khoảng trống nghiên cứu)
@@ -68,9 +36,9 @@ Tại các đô thị nén (Compact City) như Singapore, các giả thuyết đ
 - **Độ phân giải không gian (Spatial Resolution):** Dữ liệu được ánh xạ lên hệ thống phân vị của Singapore với **303 subzones** hợp lệ. Khoảng cách giữa các zone được tính toán dựa trên tọa độ tâm (centroids) trong hệ tọa độ phẳng **SVY21 (EPSG:3414)** để đảm bảo độ chính xác cho hòn đảo nhỏ.
 - **Thời gian bao phủ (Temporal Coverage):** Dữ liệu thu thập trong 1 tuần.
 
-Để cung cấp cái nhìn tổng quan về các mô hình sẽ được khảo sát, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
+Để cung cấp cái nhìn tổng quan về các mô hình sẽ được khảo sát, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong **Bảng 1**.
 
-**Table 0.** Summary of candidate mobility models ranked by tail strength.
+**Bảng 1.** Tổng quan về các mô hình di chuyển ứng viên được xếp hạng theo sức mạnh của phần đuôi (tail strength).
 
 | Rank | Model (Mô hình) | Formula $P(r)$ | $k$ | Tail (Đuôi) | Generative Interpretation (Biện giải) | Strength/Weakness |
 | :--: | :--- | :--- | :--: | :--- | :--- | :--- |
@@ -84,9 +52,26 @@ Tại các đô thị nén (Compact City) như Singapore, các giả thuyết đ
 
 ## 3. Methodology
 
-### 3.1. Quy trình Fitting Phân phối (Model Fitting Pipeline)
+### 3.1. Nomenclature (Ký hiệu và Từ viết tắt)
 
-#### 3.1.1. Dữ liệu đầu vào và Tiền xử lý
+Hệ thống hóa các ký hiệu toán học và thuật ngữ chính dùng trong nghiên cứu được trình bày trong bảng dưới đây:
+
+| Ký hiệu / Thuật ngữ | Ý nghĩa và Diễn giải |
+|:---|:---|
+| $r, P(r), C$ | Khoảng cách Euclidean (km), Hàm mật độ xác suất PDF, Hằng số chuẩn hóa |
+| $\mu, \sigma$ | Tham số trung vị và độ lệch chuẩn của phân phối Lognormal (Thói quen cá nhân) |
+| $r_0, \beta, \kappa$ | Tham số shift (dịch), exponent (lũy thừa) và truncation (cắt) của SPL/TLF |
+| $\lambda, \alpha$ | Tham số tỉ lệ (scale) và hình dáng (shape) của phân phối Gamma/Exponential |
+| $k, N$ | Số lượng tham số mô hình và Tổng số chuyến đi quan sát (Cỡ mẫu) |
+| LLH, AIC, BIC | Log-Likelihood, Akaike/Bayesian Information Criterion (Dùng chọn mô hình) |
+| KS-stat, AD-stat | Thống kê đo độ lệch tích lũy (Kolmogorov-Smirnov) và độ lệch phần đuôi |
+| CI | Khoảng tin cậy 95% (95% Confidence Interval) từ phân tích Block Bootstrap |
+| POI / GT | Point of Interest (Tiện ích từ OSM) và Ground Truth (Dữ liệu di chuyển thực tế) |
+| Subzone / Group / District | Ba cấp độ nấc thang quy mô không gian được khảo sát trong nghiên cứu |
+
+### 3.2. Quy trình Fitting Phân phối (Model Fitting Pipeline)
+
+#### 3.2.1. Dữ liệu đầu vào và Tiền xử lý
 
 Dữ liệu đầu vào là tập hợp các chuyến đi giữa các cặp subzone $(i, j)$, bao gồm số lượng chuyến đi $n_{ij}$ và khoảng cách Euclidean $r_{ij}$ (km). Với mỗi đơn vị không gian (subzone / group / district / city-wide), quá trình tiền xử lý bao gồm:
 
@@ -95,11 +80,11 @@ Dữ liệu đầu vào là tập hợp các chuyến đi giữa các cặp subz
 3. **Chuẩn hóa thành xác suất thực nghiệm:** $\hat{p}_b = h_b / N$, trong đó $N$ là tổng chuyến đi của đơn vị.
 4. **Lọc bins rỗng:** Chỉ giữ các bins có $h_b > 0$. Yêu cầu tối thiểu 4 bins hợp lệ.
 
-#### 3.1.2. Các mô hình phân phối ứng viên
+#### 3.2.2. Các mô hình phân phối ứng viên
 
-Chi tiết về 5 mô hình ứng viên (bao gồm công thức, tham số $k$ và biện giải hành vi) đã được tóm lược tại **Bảng 0**. Các mô hình này đại diện cho phổ rộng từ mô hình hàm mũ đuôi ngắn đến các quy luật lũy thừa đuôi nặng.
+Chi tiết về 5 mô hình ứng viên (bao gồm công thức, tham số $k$ và biện giải hành vi) đã được tóm lược tại **Bảng 1**. Các mô hình này đại diện cho phổ rộng từ mô hình hàm mũ đuôi ngắn đến các quy luật lũy thừa đuôi nặng.
 
-#### 3.1.3. Thuật toán ước lượng tham số: Maximum Likelihood Estimation (MLE)
+#### 3.2.3. Thuật toán ước lượng tham số: Maximum Likelihood Estimation (MLE)
 
 Tham số của từng mô hình được ước lượng bằng phương pháp **Maximum Likelihood Estimation (MLE)**. Thay vì tối thiểu hóa sai số bình phương hình học, chúng tôi tối đa hóa hàm Likelihood của dữ liệu quan sát (hoặc tối thiểu hóa Negative Log-Likelihood - NLL). Đối với dữ liệu histogram, hàm mục tiêu NLL được định nghĩa:
 
@@ -107,13 +92,12 @@ $$\mathrm{NLL}(\theta) = -\sum_{b} h_b \ln(\hat{p}^{\text{model}}_b(\theta))$$
 
 trong đó $h_b$ là số lượng chuyến đi thực tế trong bin $b$ và $\hat{p}^{\text{model}}_b(\theta)$ là xác suất lý thuyết được chuẩn hóa từ mô hình tại bin đó. Để tối ưu hóa chi phí tính toán cho hàng triệu chuyến đi, hàm likelihood được xấp xỉ bằng cách sử dụng tần suất histogram (histogram counts), tương đương với công thức multinomial likelihood (To reduce computational cost for millions of trips, likelihood is approximated using histogram counts, equivalent to a multinomial likelihood formulation). Quá trình tối ưu hóa được thực hiện bằng thuật toán **L-BFGS-B** (bổ sung Nelder-Mead khi cần thiết hội tụ) thông qua thư viện `scipy.optimize.minimize`.
 
-
 Cấu hình tối ưu hóa:
 - Thuật toán chính: L-BFGS-B (hỗ trợ ràng buộc biên)
 - Ràng buộc tham số: tất cả tham số $> 0$; $\beta \leq 15$; $\alpha \leq 20$
 - Giá trị khởi tạo: $p_0$ được thiết kế để bao phủ dải giá trị vật lý của từng mô hình.
 
-#### 3.1.4. Chuẩn hóa và Tính chỉ số Goodness-of-Fit
+#### 3.2.4. Chuẩn hóa và Tính chỉ số Goodness-of-Fit
 
 Sau khi ước lượng tham số $\hat{\theta}$, xác suất lý thuyết thô $\tilde{p}_b = P(\bar{r}_b; \hat{\theta})$ được chuẩn hóa thành PMF rời rạc:
 
@@ -132,33 +116,33 @@ trong đó $N$ là tổng số chuyến đi của đơn vị không gian, $k$ l�
 **(c) KS-statistic** — đo sai lệch tích lũy tối đa giữa CDF thực nghiệm và lý thuyết:
 $$D_{\mathrm{KS}} = \max_b \left|\sum_{b'=1}^{b} \hat{p}_{b'} - \sum_{b'=1}^{b} \hat{p}^{\text{model}}_{b'}\right|$$
 
-#### 3.1.5. Phân tích phần dư cục bộ (Residual Analysis)
+#### 3.2.5. Phân tích phần dư cục bộ (Residual Analysis)
 
 Để đánh giá sai số của mô hình tại từng dải khoảng cách cụ thể, chúng tôi tính toán **Phần dư chuẩn hóa (Standardized Residuals)**:
 $$res_b = \frac{h_b - N \cdot \hat{p}_b}{\sqrt{N \cdot \hat{p}_b (1 - \hat{p}_b)}}$$
 Trong đó $h_b$ là số chuyến đi thực tế trong bin $b$, $N$ là tổng số mẫu, và $\hat{p}_b$ là giá trị xác suất dự báo từ mô hình. Một mô hình tốt sẽ có phần dư phân bố ngẫu nhiên quanh trục 0, không có xu hướng (trend) hệ thống theo khoảng cách.
 
-#### 3.1.6. Kiểm định Thống kê Sự khác biệt (Model Comparison Tests)
+#### 3.2.6. Kiểm định Thống kê Sự khác biệt (Model Comparison Tests)
 
 Để xác định xem sự khác biệt giữa các mô hình có ý nghĩa thống kê hay không, chúng tôi áp dụng:
 1.  **Likelihood Ratio Test (LRT):** Dùng cho các mô hình lồng nhau (Nested models). Ví dụ: kiểm tra xem việc thêm tham số shape ($\alpha$) trong Gamma có cải thiện đáng kể so với Exponential ($H_0: \alpha = 1$).
 2.  **Vuong’s Test:** Dùng để so sánh các mô hình không lồng nhau (ví dụ: Lognormal vs Gamma). Chỉ số $V > 1.96$ cho thấy mô hình A tốt hơn, $V < -1.96$ cho thấy mô hình B tốt hơn (mức ý nghĩa 5%).
 3.  **$\Delta$BIC (BIC Difference):** Theo quy tắc của Kass & Raftery [6], $\Delta$BIC > 2 là bằng chứng nhẹ, > 6 là bằng chứng mạnh và **> 10 là bằng chứng áp đảo (Very strong evidence)** cho mô hình có BIC thấp hơn.
 
-#### 3.1.7. Spatial Cross-Validation (Kiểm tra chéo không gian)
+#### 3.2.7. Spatial Cross-Validation (Kiểm tra chéo không gian)
 
 Để loại bỏ hoàn toàn ảnh hưởng của cỡ mẫu ($N$) trong tiêu chuẩn BIC và đánh giá tính bền vững (robustness) của các mô hình, chúng tôi thực hiện **Spatial Cross-Validation**:
 - **Phân tách Block:** Sử dụng 40 groups địa lý (xây dựng tại mục 3.2) làm các đơn vị block để đảm bảo tính độc lập về không gian.
 - **Train-Test Split:** Thực hiện 20 lượt ShuffleSplit chọn 30 groups (75%) để fit tham số và 10 groups còn lại (25%) để kiểm tra.
 - **Chỉ số đánh giá:** Tính toán **Normalized Log-loss** (Negative Log-Likelihood trên tập test chia cho tổng chuyến đi). Đây là thước đo thuần túy về khả năng dự báo xác suất của mô hình trên dữ liệu chưa từng quan sát.
 
-#### 3.1.8. Minimum Description Length (MDL) & Effective Complexity
+#### 3.2.8. Minimum Description Length (MDL) & Effective Complexity
 
 Để đảm bảo sự công bằng giữa các mô hình có cấu trúc hàm khác nhau (ví dụ: Lognormal 3 tham số vs TLF 4 tham số) và giải quyết hạn chế của BIC khi cỡ mẫu ($N$) quá lớn, chúng tôi áp dụng nguyên lý **Minimum Description Length (MDL)**. MDL không chỉ phạt số lượng tham số $k$ mà còn xem xét "độ phức tạp hiệu dụng" (Effective Complexity) của không gian tham số:
 $$MDL(\mathcal{M}) \approx -\ln \mathcal{L}(\hat{\theta}) + \frac{k}{2} \ln \mathcal{B}$$
 Trong đó $\mathcal{B}$ là số lượng bins của histogram khoảng cách (thước đo thông tin thực tế). MDL ưu tiên các mô hình nén dữ liệu tốt nhất với cấu trúc hàm đơn giản và ổn định nhất.
 
-#### 3.1.9. Tiêu chí lựa chọn mô hình
+#### 3.2.9. Tiêu chí lựa chọn mô hình chung
 
 
 Với mỗi đơn vị không gian, mô hình tốt nhất được xác định theo từng tiêu chí:
@@ -210,7 +194,7 @@ Các subzone không độc lập về mặt không gian — các subzone lân c�
 ### 4.1. Khảo sát tại Cấp Vi mô - Subzone (Micro-scale)
 Tại quy mô nhỏ, hành vi di chuyển bị chi phối bởi các lựa chọn cá nhân dựa trên sự tiện lợi cục bộ.
 
-**Table 1b.** Tỉ lệ số phân khu (Subzones) mà mỗi mô hình chiếm ưu thế theo từng chỉ số (n = 303).
+**Bảng 2.** Tỉ lệ số phân khu (Subzones) mà mỗi mô hình chiếm ưu thế theo từng chỉ số (n = 303).
 
 | Model | BIC (count/%) | 95% BIC CI | KS (count/%) | AD (count/%) | LLH (count/%) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -238,7 +222,7 @@ Phân tích **đồng thuận (Consensus)** cho thấy sự áp đảo của **L
 
 Khi dữ liệu được gom nhóm lên cấp độ 40 vùng địa lý, đặc tính cá nhân bắt đầu bị triệt tiêu dần, nhường chỗ cho các quy luật gộp.
 
-**Table 2b.** Tỉ lệ số nhóm (40 Groups) mà mỗi mô hình chiếm ưu thế theo chỉ số (n = 34 groups hợp lệ).
+**Bảng 3.** Tỉ lệ số nhóm (40 Groups) mà mỗi mô hình chiếm ưu thế theo chỉ số (n = 34 groups hợp lệ).
 
 | Model | BIC (n/%) | KS (n/%) | AD (n/%) | LLH (n/%) |
 | :--- | :---: | :---: | :---: | :---: |
@@ -261,7 +245,7 @@ Tại quy mô này, **Gamma thống trị rõ rệt** (BIC đạt 58.8%), đóng
 
 Để đảm bảo ưu thế của Gamma không phụ thuộc vào cách chia 40 nhóm cụ thể, chúng tôi thực hiện phân tích độ nhạy bằng cách thay đổi quy mô nén dữ liệu ($K = 30, 40, 50$ nhóm) sử dụng thuật toán phân vùng không gian liền kề (Contiguous Hierarchical Clustering).
 
-**Table 9.** Độ bền vững của ưu thế mô hình Gamma qua các kịch bản phân vùng trung gian.
+**Bảng 4.** Độ bền vững của ưu thế mô hình Gamma qua các kịch bản phân vùng trung gian.
 
 | Số lượng nhóm ($K$) | Gamma (BIC Winner %) | Lognormal (BIC Winner %) | TLF (Winner %) |
 |:-------------------|:-------------------:|:-----------------------:|:--------------:|
@@ -269,7 +253,7 @@ Tại quy mô này, **Gamma thống trị rõ rệt** (BIC đạt 58.8%), đóng
 | 40 nhóm (8/quận)   | **64.7%**           | 23.5%                   | 11.8%          |
 | 50 nhóm (10/quận)  | **60.5%**           | 30.2%                   | 9.3%           |
 
-Kết quả tại Table 9 khẳng định tính ổn định của quy luật chuyển pha: Trong mọi kịch bản quy mô trung gian, Gamma luôn duy trì tỉ lệ thắng áp đảo (>58%), củng cố tính khách quan của phát hiện về giai đoạn "Cộng gộp hành vi".
+Kết quả tại **Bảng 4** khẳng định tính ổn định của quy luật chuyển pha: Trong mọi kịch bản quy mô trung gian, Gamma luôn duy trì tỉ lệ thắng áp đảo (>58%), củng cố tính khách quan của phát hiện về giai đoạn "Cộng gộp hành vi".
 
 
 Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
@@ -280,9 +264,9 @@ Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
 
 ### 4.3. Khảo sát tại Cấp Vĩ mô - District (Macro-scale)
 
-Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc cạnh tranh quyết liệt giữa các mô hình (Table 3b).
+Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc cạnh tranh quyết liệt giữa các mô hình (**Bảng 5**).
 
-**Table 3b.** Ưu thế mô hình tại Quy mô Vĩ mô (5 Districts).
+**Bảng 5.** Ưu thế mô hình tại Quy mô Vĩ mô (5 Districts).
 
 | Model              | BIC Winner (%) | KS Winner (%) | AD Winner (%) | Statistical Test (LRT/Vuong) |
 | :---               | :---:          | :---:         | :---:         | :---                         |
@@ -293,11 +277,9 @@ Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc 
 
 **Nhận xét:** Tại quy mô District, chúng tôi ghi nhận một hiện tượng thú vị: Trong khi Gamma và TLF chiếm ưu thế về BIC (thông tin tổng thể), thì **Lognormal lại thắng tuyệt đối về AD-stat (80%)**. Điều này cho thấy LN mô tả tốt sự hội tụ của dữ liệu tại các cực (tail-body interface) của từng quận, nhưng lại thất bại trong việc cân bằng sai số trên toàn bộ dải khoảng cách khi so với các mô hình hệ thống.
 
-**Nhận xét từ các kiểm định ý nghĩa (Table 8):**
-- **Sự trỗi dậy của Gamma:** Kiểm định Vuong khẳng định Gamma tốt hơn Lognormal một cách áp đảo ($V < -22.0$). Đồng thời, chỉ số MDL (đề cập tại mục 3) cho thấy Gamma là mô hình tối ưu hơn TLF (60% ưu thế) khi xét tới độ phức tạp hiệu dụng.
-- **Vị thế của TLF và SPL:** Mặc dù SPL dẫn đầu về KS-stat (40%), nhưng LRT khẳng định việc thêm tham số cắt $\kappa$ (TLF) mang lại cải thiện LLH có ý nghĩa thống kê cực lớn ($p < 0.0001$). Điều này minh chứng cho ảnh hưởng của biên giới đảo Singapore lên các chuyến đi dài.
+**Nhận xét từ các kiểm định ý nghĩa (Bảng 6):**
 
-**Table 8.** Kết quả kiểm định thống kê sự khác biệt (District Scale).
+**Bảng 6.** Kết quả kiểm định thống kê sự khác biệt (District Scale).
 
 | Comparison (A vs B) | Test Type | Result (p-val / V-stat) | Conclusion |
 |---------------------|-----------|-------------------------|------------|
@@ -313,7 +295,7 @@ Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc 
 
 Ở cấp độ gộp cao nhất (toàn bộ Singapore), toàn bộ các đặc tính hành vi cá nhân và hạ tầng cụ thể bị triệt tiêu, chỉ còn lại quy luật "ma sát khoảng cách" cơ bản nhất (distance decay).
 
-**Table 4.** Hiệu quả mô hình tại quy mô toàn thành phố (Global scale, n = 1).
+**Bảng 7.** Hiệu quả mô hình tại quy mô toàn thành phố (Global scale, n = 1).
 
 | Model | $k$ | LLH | BIC | $\Delta$BIC | KS-stat | AD-stat |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -334,7 +316,7 @@ Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế
 
 Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh chuyển dịch liền mạch từ cá nhân đến hệ thống.
 
-**Table 5.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian.
+**Bảng 8.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian.
 
 | Distribution              | Subzone (303) | 40 Groups (34) | District (5) | Global (1)  |
 |---------------------------|:-------------:|:--------------:|:------------:|:-----------:|
@@ -392,7 +374,7 @@ graph TD
 
 Kết quả kiểm tra chéo trên 40 block địa lý trang bị cho mô hình khả năng tổng quát hóa mà không phụ thuộc vào BIC phụ thuộc cỡ mẫu.
 
-**Table 6.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
+**Bảng 9.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
 
 | Model              | Win Rate (%) | Predictive Preference |
 |--------------------|:------------:|:----------------------|

@@ -49,7 +49,8 @@ print(f"Starting fitting for {len(groups_list)} groups...")
 
 for group_id, group_data in df.groupby('group_id'):
     total_trips = group_data['COUNT'].sum()
-    if total_trips < 50 or len(group_data) < 5:
+    # Chỉ cần có chuyến đi là bắt đầu xét
+    if total_trips <= 0:
         continue
     
     distances = group_data['euclidean_distance_km'].values
@@ -64,6 +65,7 @@ for group_id, group_data in df.groupby('group_id'):
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
     mask = (hist > 0) & (bin_centers > 0)
+    # Yêu cầu tối thiểu 4 bin có dữ liệu để khớp được mô hình phức tạp nhất (TLF - 4 params)
     if mask.sum() < 4:
         continue
         

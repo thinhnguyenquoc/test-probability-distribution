@@ -48,7 +48,8 @@ print(f"Bắt đầu quy trình fitting và trích xuất chỉ số (AIC, BIC, 
 
 for district, group in df.groupby('district_id'):
     total_trips = group['COUNT'].sum()
-    if total_trips < 100 or len(group) < 5:
+    # Chỉ cần có chuyến đi là bắt đầu xét
+    if total_trips <= 0:
         continue
     
     distances = group['euclidean_distance_km'].values
@@ -64,6 +65,7 @@ for district, group in df.groupby('district_id'):
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
     mask = hist > 0
+    # Yêu cầu tối thiểu 4 bin có dữ liệu để khớp được mô hình phức tạp nhất (TLF - 4 params)
     if mask.sum() < 4:
         continue
         
