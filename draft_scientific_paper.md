@@ -14,40 +14,36 @@ date: "April 2026"
 
 ## Nomenclature (Ký hiệu và Từ viết tắt)
 
-**Variables & Parameters:**
-- $r$: Khoảng cách Euclidean di chuyển (km)
-- $P(r)$: Xác suất di chuyển (Probability Density) tại khoảng cách $r$
-- $k$: Số lượng tham số của mô hình (Number of parameters)
-- $M$: Số lượng mô hình ứng viên đặt trong so sánh
-- $n$: Số lượng đơn vị không gian khảo sát (subzones, groups, districts)
-
-**Models & Distributions:**
-- **LN**: Lognormal Distribution (Phân phối Lognormal)
-- **SPL**: Shifted Power-Law (Quy luật lũy thừa có dịch chuyển)
-- **TLF**: Truncated Lévy Flight (Quy luật Lévy Flight có giới hạn)
-- **Exp**: Exponential Distribution (Phân phối hàm mũ)
-- **Gamma**: Gamma Distribution (Phân phối Gamma)
-
-**Metrics & Statistics:**
-- **BIC**: Bayesian Information Criterion (Tiêu chuẩn thông tin Bayes)
-- **BIC Winner (%)**: Tỷ lệ phần trăm số vùng mà mô hình đạt BIC thấp nhất (tốt nhất)
-- **KS-stat**: Thống kê Kolmogorov-Smirnov (Độ lệch tối đa giữa CDF thực nghiệm và lý thuyết)
-- **CI**: Confidence Interval (Khoảng tin cậy, thường sử dụng 95% Bootstrap CI)
-
-**Model Parameters:**
-- $C$: Hằng số chuẩn hóa xác suất của các mô hình
-- $\mu, \sigma$: Tham số trung giá trị (mean) và độ lệch chuẩn (standard deviation) của Lognormal
-- $r_0, \beta$: Tham số khoảng cách dịch (shift) và số mũ phân kỳ (exponent) của Shifted Power-Law
-- $\lambda$: Tham số phân rã (decay parameter) của Exponential và Gamma
-- $\alpha$: Tham số hình dáng (shape parameter) của Gamma
+**Ký hiệu Toán học và Tham số:**
+- $r$: Khoảng cách di chuyển Euclidean (km)
+- $P(r)$: Hàm mật độ xác suất di chuyển (Probability Density Function)
+- $C$: Hằng số chuẩn hóa xác suất (Normalization constant)
+- $\mu, \sigma$: Tham số trung vị và độ lệch chuẩn của phân phối Lognormal
+- $r_0, \beta$: Tham số dịch chuyển (shift) và số mũ (exponent) của SPL và TLF
+- $\lambda, \alpha$: Tham số tỉ lệ (scale) và hình dáng (shape) của phân phối Gamma/Exp
 - $\kappa$: Tham số giới hạn cắt (truncating constant) của Truncated Lévy Flight
+- $k$: Số lượng tham số của mô hình (Number of parameters)
+- $N$: Tổng số chuyến đi quan sát được (Sample size)
 
-**Abbreviations & Metrics:**
-- **POI**: Point of Interest (Điểm tiện ích đô thị từ nguồn OpenStreetMap)
-- **BIC Best (%)**: Tỷ lệ phần trăm số vùng mà mô hình đạt BIC thấp nhất (tốt nhất)
-- **KS-stat**: Kolmogorov-Smirnov statistic (Khoảng cách cực đại giữa hàm phân phối tích lũy của dữ liệu và mô hình)
-- **EMD**: Earth Mover's Distance (Khoảng cách Wasserstein) đánh giá độ lệc phân phối
-- **GT**: Ground Truth (Dữ liệu di chuyển đa nguồn đã chuẩn hóa làm chuẩn)
+**Mô hình và Phân phối (Models):**
+- **LN / Lognormal**: Phân phối Log-chuẩn (Phản ánh thói quen cá nhân)
+- **SPL**: Quy luật lũy thừa có dịch chuyển (Shifted Power-Law)
+- **TLF**: Quy luật Lévy Flight có giới hạn (Truncated Lévy Flight)
+- **Exp / Gamma**: Phân phối hàm mũ và Gamma (Phản ánh sự cộng gộp)
+
+**Chỉ số Thống kê và Đánh giá (Metrics):**
+- **LLH / NLL**: Log-Likelihood và Negative Log-Likelihood
+- **AIC / BIC**: Tiêu chuẩn thông tin Akaike và Bayes (Dùng để chọn mô hình)
+- **BIC Winner (%)**: Tỷ lệ phần trăm số vùng mà mô hình đạt BIC thấp nhất
+- **KS-stat**: Thống kê Kolmogorov-Smirnov (Đo sai lệch hình thái tích lũy)
+- **AD-stat**: Thống kê Anderson-Darling (Đánh giá độ khớp ở phần đuôi)
+- **CI**: Khoảng tin cậy 95% (95% Confidence Interval) tính từ Bootstrap
+
+**Từ viết tắt và Khái niệm (Abbreviations):**
+- **POI**: Point of Interest (Điểm tiện ích đô thị từ OpenStreetMap)
+- **GT**: Ground Truth (Dữ liệu di chuyển thực tế làm chuẩn)
+- **Subzone / Group / District**: Các cấp độ quy mô không gian nghiên cứu
+
 
 ## 2. Introduction & Hypothesis
 ### 2.1. Research Gap (Khoảng trống nghiên cứu)
@@ -72,17 +68,17 @@ Tại các đô thị nén (Compact City) như Singapore, các giả thuyết đ
 - **Độ phân giải không gian (Spatial Resolution):** Dữ liệu được ánh xạ lên hệ thống phân vị của Singapore với **303 subzones** hợp lệ. Khoảng cách giữa các zone được tính toán dựa trên tọa độ tâm (centroids) trong hệ tọa độ phẳng **SVY21 (EPSG:3414)** để đảm bảo độ chính xác cho hòn đảo nhỏ.
 - **Thời gian bao phủ (Temporal Coverage):** Dữ liệu thu thập trong 1 tuần.
 
-Để cung cấp cái nhìn tổng quan về các mô hình sẽ được phân tích, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
+Để cung cấp cái nhìn tổng quan về các mô hình sẽ được khảo sát, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
 
 **Table 0.** Summary of candidate mobility models ranked by tail strength.
 
-| Rank (Tail Strength) | Model                           | Probability Distribution                                                  | Tail Behavior              | Generative Interpretation                           | Strength                                     | Weakness                                 |
-| -------------------- | ------------------------------- | ------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
-| 1                    | **Exponential**                 | $P(r) \propto \exp(-r/\lambda)$                                           | Very short tail            | Random movement with constant decay probability     | Simple baseline model                        | Cannot capture long-distance mobility    |
-| 2                    | **Gamma**                       | $P(r) \propto r^{\alpha-1} \exp(-r/\lambda)$                              | Short exponential tail     | Aggregation of multiple stochastic travel processes | Flexible near short distances                | Tail still decays rapidly                |
-| 3                    | **Lognormal**                   | $P(r) \propto \frac{1}{r} \exp\left(-\frac{(\ln r-\mu)^2}{2\sigma^2}\right)$ | Moderately heavy tail      | Multiplicative behavioral processes                 | Empirically fits many mobility datasets      | Weak theoretical mobility interpretation |
-| 4                    | **Truncated Lévy Flight (TLF)** | $P(r) \propto (r+r_0)^{-\beta} \exp(-r/\kappa)$                           | Heavy tail with truncation | Lévy flight mobility constrained by spatial limits  | Strong theoretical basis in mobility studies | Sensitive to truncation scale            |
-| 5                    | **Shifted Power Law (SPL)**     | $P(r) \propto (r+r_0)^{-\beta}$                                           | Heaviest tail              | Scale-free mobility with short-distance correction  | Captures heavy-tail structure well           | May overestimate long-distance trips     |
+| Rank | Model (Mô hình) | Formula $P(r)$ | $k$ | Tail (Đuôi) | Generative Interpretation (Biện giải) | Strength/Weakness |
+| :--: | :--- | :--- | :--: | :--- | :--- | :--- |
+| 1 | **Exponential** | $C e^{-r/\lambda}$ | 2 | Very short | Ngẫu nhiên với xác suất suy giảm không đổi | Đơn giản / Khó khớp di chuyển dài |
+| 2 | **Gamma** | $C r^{\alpha-1} e^{-r/\lambda}$ | 3 | Short exp | Cộng gộp các tiến trình chuyển động ngẫu nhiên | Linh hoạt vùng ngắn / Đuôi suy giảm nhanh |
+| 3 | **Lognormal** | $\frac{C}{r \sigma \sqrt{2\pi}} e^{-\frac{(\ln r-\mu)^2}{2\sigma^2}}$ | 3 | Moderate | Thói quen cá nhân và tối ưu hóa cục bộ | Khớp tốt dữ liệu thực tế / Ít ý nghĩa hình học |
+| 4 | **TLF** | $C(r+r_0)^{-\beta} e^{-r/\kappa}$ | 4 | Heavy (Trun) | Lévy flight bị giới hạn bởi biên giới đô thị | Cơ sở lý thuyết mạnh / Nhạy cảm với tham số cắt |
+| 5 | **SPL** | $C(r+r_0)^{-\beta}$ | 3 | Heaviest | Đặc tính hệ thống và cấu trúc hạ tầng | Khớp tốt chuyến đi xa / Đánh giá cao đuôi |
 
 ![Distribution Comparison](distribution_comparison.png)
 
@@ -101,15 +97,7 @@ Dữ liệu đầu vào là tập hợp các chuyến đi giữa các cặp subz
 
 #### 3.1.2. Các mô hình phân phối ứng viên
 
-Năm mô hình phân phối được so sánh, với số tham số $k$ tương ứng:
-
-| Mô hình | Công thức $P(r)$ | $k$ | Tham số |
-| :--- | :--- | :---: | :--- |
-| **Exponential** | $C \cdot e^{-r/\lambda}$ | 2 | $C, \lambda$ |
-| **Lognormal** | $\frac{C}{r \sigma \sqrt{2\pi}} \exp\!\left[-\frac{(\ln r - \mu)^2}{2\sigma^2}\right]$ | 3 | $C, \mu, \sigma$ |
-| **Gamma** | $C \cdot r^{\alpha-1} e^{-r/\lambda}$ | 3 | $C, \alpha, \lambda$ |
-| **Shifted Power-Law** | $C \cdot (r + r_0)^{-\beta}$ | 3 | $C, r_0, \beta$ |
-| **Truncated Lévy Flight** | $C \cdot (r + r_0)^{-\beta} e^{-r/\kappa}$ | 4 | $C, r_0, \beta, \kappa$ |
+Chi tiết về 5 mô hình ứng viên (bao gồm công thức, tham số $k$ và biện giải hành vi) đã được tóm lược tại **Bảng 0**. Các mô hình này đại diện cho phổ rộng từ mô hình hàm mũ đuôi ngắn đến các quy luật lũy thừa đuôi nặng.
 
 #### 3.1.3. Thuật toán ước lượng tham số: Maximum Likelihood Estimation (MLE)
 
@@ -317,17 +305,18 @@ Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế
 
 Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh chuyển dịch liền mạch từ cá nhân đến hệ thống.
 
-**Table 5.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian (MLE).
+**Table 5.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian.
 
 | Distribution              | Subzone (303) | 40 Groups (34) | District (5) | Global (1)  |
 |---------------------------|:-------------:|:--------------:|:------------:|:-----------:|
-| **Lognormal**             | **0.5974**    | 0.2941         | 0.0000       | **1.0000**  |
-| **Gamma**                 | 0.3465        | **0.5882**     | **0.4000**   | 0.0000      |
-| **Shifted Power-Law**     | 0.0297        | 0.0294         | 0.0000       | 0.0000      |
-| **Exponential**           | 0.0231        | 0.0588         | 0.2000       | 0.0000      |
-| **Trun. Lévy Flight**     | 0.0033        | 0.0294         | **0.4000**   | 0.0000      |
+| **Lognormal**             | **59.7%**     | 29.4%          | 0.0%         | **100%**    |
+| **Gamma**                 | 34.7%         | **58.8%**      | **40.0%**    | 0.0%        |
+| **Shifted Power-Law**     | 3.0%          | 2.9%           | 0.0%         | 0.0%        |
+| **Exponential**           | 2.3%          | 5.9%           | 20.0%        | 0.0%        |
+| **Trun. Lévy Flight**     | 0.3%          | 2.9%           | **40.0%**    | 0.0%        |
 
-*Lưu ý: Tại Global (n=1), Exp và TLF hòa nhau về AIC/BIC (~39.10M). Tỉ lệ 0.5/0.5 phản ánh sự hòa.*
+*Lưu ý: Tại quy mô Global (n=1), sự lên ngôi của Lognormal phản ánh sự tập trung của thói quen tại vùng lõi dân cư, trong khi các mô hình hệ thống (SPL/TLF) mô tả tốt hình thái lan tỏa (KS-stat).*
+
 
 ```mermaid
 graph TD
