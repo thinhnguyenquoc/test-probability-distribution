@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 
 def run_global_analysis():
     df_trips = pd.read_csv('data_trip_sum.csv')
@@ -16,8 +16,9 @@ def run_global_analysis():
     hist, bin_edges = np.histogram(distances, bins=bins, weights=counts)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     mask = hist > 0
-    x = bin_centers[mask]
-    y = hist[mask] / total_trips
+    x_data = bin_centers[mask]
+    y_counts = hist[mask]
+    y_prob = y_counts / total_trips
     
     def lognormal_dist(r, C, mu, sigma):
         r_safe = np.clip(r, 1e-5, None)
@@ -49,17 +50,30 @@ def run_global_analysis():
     print(f"|---|---|---|---|---|---|")
     for name, (func, p0, k, bounds) in models.items():
         try:
-            popt, _ = curve_fit(func, x, y, p0=p0, bounds=bounds, maxfev=50000)
-            y_fit = func(x, *popt)
-            r2 = 1 - np.sum((y - y_fit)**2) / np.sum((y - np.mean(y))**2)
-            # Log likelihood for BIC
-            y_fit_norm = y_fit / np.sum(y_fit)
-            ll = np.sum((y * total_trips) * np.log(np.clip(y_fit_norm, 1e-300, 1)))
+            # Objective function for MLE: Negative Log-Likelihood
+            def nll(params):
+                y_raw = func(x_data, *params)
+                if np.sum(y_raw) <= 0 or np.any(y_raw < 0):
+                    return 1e18
+                y_pmf = y_raw / np.sum(y_raw)
+                y_safe = np.clip(y_pmf, 1e-300, 1)
+                return -np.sum(y_counts * np.log(y_safe))
+
+            bnds = list(zip(bounds[0], bounds[1]))
+            res = minimize(nll, p0, method='L-BFGS-B', bounds=bnds)
+            
+            popt = res.x
+            y_fit_raw = func(x_data, *popt)
+            y_fit_pmf = y_fit_raw / np.sum(y_fit_raw)
+            
+            r2 = 1 - np.sum((y_prob - y_fit_pmf)**2) / np.sum((y_prob - np.mean(y_prob))**2)
+            ll = -res.fun
             aic = 2 * k - 2 * ll
             bic = k * np.log(total_trips) - 2 * ll
+            
             # KS
-            y_cdf = np.cumsum(y / np.sum(y))
-            fit_cdf = np.cumsum(y_fit_norm)
+            y_cdf = np.cumsum(y_prob)
+            fit_cdf = np.cumsum(y_fit_pmf)
             ks = np.max(np.abs(y_cdf - fit_cdf))
             print(f"| {name} | {r2:.4f} | {ll:,.0f} | {aic:,.0f} | {bic:,.0f} | {ks:.4f} |")
         except Exception as e:

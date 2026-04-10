@@ -114,16 +114,18 @@ Năm mô hình phân phối được so sánh, với số tham số $k$ tương 
 | **Shifted Power-Law** | $C \cdot (r + r_0)^{-\beta}$ | 3 | $C, r_0, \beta$ |
 | **Truncated Lévy Flight** | $C \cdot (r + r_0)^{-\beta} e^{-r/\kappa}$ | 4 | $C, r_0, \beta, \kappa$ |
 
-#### 3.1.3. Thuật toán ước lượng tham số
+#### 3.1.3. Thuật toán ước lượng tham số: Maximum Likelihood Estimation (MLE)
 
-Tham số của từng mô hình được ước lượng bằng phương pháp **Nonlinear Least Squares (NLS)** với thuật toán tối ưu **Levenberg-Marquardt**, triển khai qua hàm `scipy.optimize.curve_fit` (Python). Thuật toán tối thiểu hóa tổng bình phương sai số:
+Tham số của từng mô hình được ước lượng bằng phương pháp **Maximum Likelihood Estimation (MLE)**. Thay vì tối thiểu hóa sai số bình phương hình học, chúng tôi tối đa hóa hàm Likelihood của dữ liệu quan sát (hoặc tối thiểu hóa Negative Log-Likelihood - NLL). Đối với dữ liệu histogram, hàm mục tiêu NLL được định nghĩa:
 
-$$\hat{\theta} = \arg\min_{\theta} \sum_{b} \left[\hat{p}_b - P(\bar{r}_b; \theta)\right]^2$$
+$$\mathrm{NLL}(\theta) = -\sum_{b} h_b \ln(\hat{p}^{\text{model}}_b(\theta))$$
 
-Cấu hình fitting:
-- Số vòng lặp tối đa: `maxfev = 15,000`
-- Ràng buộc tham số: tất cả tham số $> 0$; $\beta \leq 15$ để tránh đuôi phân kỳ; $\alpha \leq 20$ cho Gamma
-- Giá trị khởi tạo: $p_0$ được chọn dựa trên đặc tính của từng mô hình (ví dụ: $\beta_0 = 2$, $\sigma_0 = 1$)
+trong đó $h_b$ là số lượng chuyến đi thực tế trong bin $b$ và $\hat{p}^{\text{model}}_b(\theta)$ là xác suất lý thuyết được chuẩn hóa từ mô hình tại bin đó. Quá trình tối ưu hóa được thực hiện bằng thuật toán **L-BFGS-B** (bổ sung Nelder-Mead khi cần thiết hội tụ) thông qua thư viện `scipy.optimize.minimize`.
+
+Cấu hình tối ưu hóa:
+- Thuật toán chính: L-BFGS-B (hỗ trợ ràng buộc biên)
+- Ràng buộc tham số: tất cả tham số $> 0$; $\beta \leq 15$; $\alpha \leq 20$
+- Giá trị khởi tạo: $p_0$ được thiết kế để bao phủ dải giá trị vật lý của từng mô hình.
 
 #### 3.1.4. Chuẩn hóa và Tính chỉ số Goodness-of-Fit
 
@@ -196,112 +198,71 @@ Các subzone không độc lập về mặt không gian — các subzone lân c�
 ### 4.1. Khảo sát tại Cấp Vi mô - Subzone (Micro-scale)
 Tại quy mô nhỏ, hành vi di chuyển bị chi phối bởi các lựa chọn cá nhân dựa trên sự tiện lợi cục bộ.
 
-**Table 1.** Hiệu quả của các mô hình tại quy mô Subzone (n = 303 subzones).
-
-| Model | $k$ | Mean LLH | Mean AIC | Mean BIC | Mean $R^2$ [95% CI] | Mean KS [95% CI] |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | -75.5k | 151.0k | 151.0k | **0.8199** [0.796, 0.846] | 0.1492 [0.126, 0.192] |
-| **Shifted Power-Law** | 3 | -66.5k | 133.0k | 133.0k | 0.6998 [0.661, 0.725] | 0.0935 [0.088, 0.108] |
-| **Gamma** | 3 | -104.1k| 208.3k | 208.3k | 0.8022 [0.782, 0.830] | 0.1911 [0.168, 0.230] |
-| **Exponential** | 2 | -70.1k | 140.1k | 140.1k | 0.6919 [0.650, 0.715] | 0.1216 [0.100, 0.155] |
-| **Trun. Lévy Flight** | 4 | **-66.5k** | **132.9k** | **132.9k**| 0.7026 [0.664, 0.728] | **0.0898** [0.084, 0.105] |
-
-**Table 1b.** Tỉ lệ số phân khu (Subzones) mà mỗi mô hình chiếm ưu thế theo từng chỉ số.
+**Table 1b.** Tỉ lệ số phân khu (Subzones) mà mỗi mô hình chiếm ưu thế theo từng chỉ số (n = 303).
 
 | Model | AIC (n/%) | BIC (n/%) | KS (n/%) | LLH (n/%) | $R^2$ (n/%) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 85 (28%) | 85 (28%) | 59 (19%) | 86 (28%) | **210 (69%)** |
-| **Shifted Power-Law** | 80 (26%) | 85 (28%) | **99 (33%)** | 71 (23%) | 7 (2%) |
-| **Gamma** | 74 (24%) | 73 (24%) | 69 (23%) | 74 (24%) | 78 (26%) |
-| **Exponential** | 49 (16%) | 50 (17%) | 53 (17%) | 40 (13%) | 0 (0%) |
-| **Trun. Lévy Flight** | 15 (5%) | 10 (3%) | 23 (8%) | 32 (11%) | 8 (3%) |
+| **Lognormal** | **182 (60%)** | **181 (60%)** | **141 (47%)** | **182 (60%)** | **297 (98%)** |
+| **Exponential** | 3 (1%) | 7 (2%) | 15 (5%) | 0 (0%) | 0 (0%) |
+| **Gamma** | 108 (36%) | 105 (35%) | 62 (21%) | 109 (36%) | 0 (0%) |
+| **Shifted Power-Law** | 8 (3%) | 9 (3%) | 53 (18%) | 8 (3%) | 3 (1%) |
+| **Trun. Lévy Flight** | 2 (1%) | 1 (0%) | 32 (11%) | 4 (1%) | 3 (1%) |
 
 ![Model Dominance Subzone](model_dominance_subzone.png)
-*Hình 4. Thống kê số lượng Subzone mà mỗi mô hình đạt kết quả tốt nhất theo 5 tiêu chí khác nhau.*
+*Hình 4. Thống kê số lượng Subzone mà mỗi mô hình đạt kết quả tốt nhất theo 5 tiêu chí khác nhau (Ước lượng MLE).*
 
-**Note on Metrics:** 
-- **Log-likelihood (LLH)**: Giá trị log của hàm hợp lý, LLH càng cao (ít âm hơn) mô hình càng khớp.
-- **AIC / BIC**: Các chỉ số thông tin (Akaike/Bayesian), dùng để chọn mô hình tối ưu bằng cách phạt số lượng tham số ($k$). Giá trị thấp hơn chứng tỏ sự đánh đổi tốt hơn giữa độ khớp và độ đơn giản.
-- **$R^2$**: Độ khớp về hình dáng (shape-fitting).
-- **KS-stat**: Độ lệch tối đa giữa phân phối thực tế và lý thuyết.
+**Nhận xét quy mô Vi mô - Ưu thế tuyệt đối của hành vi cá nhân:**
+- **Thống trị hình dáng ($R^2$):** Lognormal chiếm ưu thế tại **98%** số phân khu. Điều này khẳng định ở cấp độ vi mô, xác suất di chuyển luôn có một "vùng lõi" thói quen (distance plateau) trước khi suy giảm.
+- **Thống trị thống kê (AIC/BIC):** Lognormal dẫn đầu tại **60%** số vùng, tiếp theo là Gamma tại **35%**. Các mô hình hệ thống (SPL, TLF) hầu như không có vị thế thống kê ở quy mô này (tổng cộng < 5%).
+- **Cơ chế:** Kết quả này xác nhận giả thuyết 1a: tại quy mô nhỏ nhất, di chuyển là kết quả của việc tối ưu hóa thói quen cá nhân, được mô tả xuất sắc bởi phân phối Lognormal.
 
-Phân tích chi tiết tại từng subzone làm nổi bật hai chiều cạnh song song:
-- **Khớp hình dáng ($R^2$):** Lognormal chiếm ưu thế tuyệt đối tại **69%** số phân khu (210/303), Gamma đứng thứ hai với 26% — bỏ xa SPL (2%) và Exponential (0%). Điều này xác nhận người dân di chuyển theo thói quen cá nhân có đỉnh rõ rệt ở khoảng cách ngắn-trung bình.
-- **Khớp thống kê (AIC/BIC):** Cuộc chiến hoàn toàn khác: **LN và SPL hòa nhau** (đều 28%), theo sát là Gamma (24%). Quan trọng hơn, **SPL thắng KS-stat tại 33%** số vùng — có nghĩa là tại 1/3 số phân khu, SPL mô tả phân phối tích lũy (phần đuôi khoảng cách xa) chính xác hơn mọi mô hình khác.
-
-Phân tích **đồng thuận (Consensus)** cho thấy thứ tự: **Lognormal (85 vùng) > SPL (80 vùng) > Gamma (74 vùng)**. Khoảng cách giữa LN và SPL (85 vs 80) rất nhỏ, cho thấy ngay ở quy mô vi mô, **sức hút lực hấp dẫn đô thị (SPL) đã cạnh tranh trực tiếp với thói quen cá nhân (LN)** tại một tỉ lệ đáng kể các phân khu.
+Phân tích **đồng thuận (Consensus)** cho thấy sự áp đảo của **Lognormal (182 vùng)** bỏ xa **Gamma (108 vùng)**.
 
 ### 4.2. Khảo sát tại Cấp Trung gian - 40 Groups (Intermediate-scale)
 
-Khi dữ liệu được gom nhóm lên cấp độ 40 vùng địa lý (trung bình ~7.5 subzones/vùng), đặc tính cá nhân bắt đầu bị triệt tiêu dần bởi phép cộng gộp, nhưng vẫn giữ được độ phân giải không gian cao hơn cấp quận.
+Khi dữ liệu được gom nhóm lên cấp độ 40 vùng địa lý, đặc tính cá nhân bắt đầu bị triệt tiêu dần, nhường chỗ cho các quy luật gộp.
 
-**Table 2.** So sánh hiệu quả tại quy mô trung gian (40 Groups, n = 40).
-
-| Model | $k$ | Mean LLH | Mean AIC | Mean BIC | Mean $R^2$ | Mean KS |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | -600.1k | 1.20M | 1.20M | **0.8370** | 0.1195 |
-| **Shifted Power-Law** | 3 | -568.4k | 1.14M | 1.14M | 0.7739 | 0.0777 |
-| **Gamma** | 3 | -703.3k | 1.41M | 1.41M | 0.8289 | 0.1287 |
-| **Exponential** | 2 | -581.6k | 1.16M | 1.16M | 0.7653 | 0.1008 |
-| **Trun. Lévy Flight** | 4 | **-567.5k** | **1.13M** | **1.13M**| 0.7774 | **0.0724** |
-
-**Table 2b.** Tỉ lệ số nhóm (40 Groups) mà mỗi mô hình chiếm ưu thế theo từng chỉ số.
+**Table 2b.** Tỉ lệ số nhóm (40 Groups) mà mỗi mô hình chiếm ưu thế theo chỉ số (n = 34 groups hợp lệ).
 
 | Model | AIC (n/%) | BIC (n/%) | KS (n/%) | LLH (n/%) | $R^2$ (n/%) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 8 (24%) | 7 (21%) | 5 (15%) | 8 (24%) | **20 (59%)** |
-| **Exponential** | 8 (24%) | 9 (26%) | 7 (21%) | 8 (24%) | 1 (3%) |
-| **Gamma** | **13 (38%)** | **13 (38%)** | **11 (32%)** | **13 (38%)** | 11 (32%) |
-| **Shifted Power-Law** | 2 (6%) | 3 (9%) | 8 (24%) | 2 (6%) | 1 (3%) |
-| **Trun. Lévy Flight** | 3 (9%) | 2 (6%) | 3 (9%) | 3 (9%) | 1 (3%) |
+| **Lognormal** | 10 (29%) | 10 (29%) | 11 (32%) | 10 (29%) | **33 (97%)** |
+| **Exponential** | 2 (6%) | 2 (6%) | 2 (6%) | 0 (0%) | 0 (0%) |
+| **Gamma** | **20 (59%)** | **20 (59%)** | **14 (41%)** | **22 (65%)** | 0 (0%) |
+| **Shifted Power-Law** | 0 (0%) | 1 (3%) | 6 (18%) | 0 (0%) | 1 (3%) |
+| **Trun. Lévy Flight** | 2 (6%) | 1 (3%) | 1 (3%) | 2 (6%) | 0 (0%) |
 
 ![Group Dominance 40](group_40_dominance_by_metric.png)
-*Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô trung gian (40 Groups).*
+*Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô trung gian (40 Groups - MLE).*
 
-Tại quy mô này, **Gamma thống trị tuyệt đối** trên cả 4 chỉ số thống kê (AIC 38%, BIC 38%, KS 32%, LLH 38%), đóng vai trò "vùng đệm lý thuyết" rõ rệt. Có hai hiện tượng bất ngờ cần chú ý:
+**Nhận xét quy mô Trung gian - Sự trỗi dậy của vùng đệm Gamma:**
+Tại quy mô này, **Gamma thống trị tuyệt đối** (AIC/BIC đều đạt 59%), đóng vai trò biểu diễn cho sự cộng gộp các thói quen cá nhân. Lognormal mặc dù vẫn khớp hình dáng tốt ($R^2$ 97%), nhưng vị thế thống kê đã giảm mạnh một nửa từ 60% (Subzone) xuống còn **29%**. Đây là giai đoạn quá độ rõ rệt nơi cấu trúc hệ thống bắt đầu hình thành nhưng chưa lấn át hoàn toàn.
 
-1. **SPL sụp đổ đột ngột:** Từ vị thế hòa cùng LN ở cấp Subzone (BIC 28%), SPL chỉ còn chiếm **6–9%** ở quy mô này. Điều này gợi ý rằng SPL không hoạt động theo cơ chế tuyến tính — nó phát huy hiệu quả ở hai thái cực (vi mô và vĩ mô) nhưng suy giảm mạnh ở quy mô trung gian.
-
-2. **Exponential trỗi dậy sớm:** Exp đã tăng từ 17% (Subzone) lên **26% (BIC)** ở quy mô này, ngang bằng với LN trong Consensus (8 vùng mỗi bên). Đây là tín hiệu báo trước sự chuyển dịch sang quy luật hệ thống ở các quy mô lớn hơn.
-
-Lognormal vẫn duy trì $R^2$ cao nhất (59%), nhưng khoảng cách với Gamma (32%) đã thu hẹp đáng kể so với cấp Subzone (69% vs 26%). Consensus: **Gamma (13 vùng) > Exp (8) = LN (8)** — lần đầu tiên Exponential ngang ngửa Lognormal trong phân tích đồng thuận.
+Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
 
 ![So sánh phân phối 40 nhóm](group_40_distribution_comparison.png)
-*Hình 2. Phân bổ các mô hình tối ưu (BIC) tại quy mô 40 nhóm, thể hiện trạng thái quá độ giữa vi mô và vĩ mô.*
+*Hình 2. Bản đồ phân bổ các mô hình tối ưu (BIC) tại quy mô 40 nhóm.*
 
 ### 4.3. Khảo sát tại Cấp Vĩ mô - District (Macro-scale)
 
-Khi quy mô mở rộng lên 5 districts, đặc tính hệ thống và cấu trúc đô thị bắt đầu lấn át hoàn toàn thói quen cá nhân đơn lẻ.
-
-**Table 3.** Hiệu quả mô hình tại quy mô vĩ mô (District level, n = 5).
-
-| Model | $k$ | Mean LLH | Mean AIC | Mean BIC | Mean $R^2$ | Mean KS |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | -4.52M | 9.04M | 9.04M | **0.9307** | 0.0847 |
-| **Shifted Power-Law** | 3 | -4.50M | 9.01M | 9.01M | 0.8987 | 0.0474 |
-| **Gamma** | 3 | -4.78M | 9.55M | 9.55M | 0.8965 | 0.1627 |
-| **Exponential** | 2 | -4.56M | 9.13M | 9.13M | 0.8882 | 0.1113 |
-| **Trun. Lévy Flight** | 4 | **-4.50M** | **9.00M** | **9.00M**| 0.8987 | **0.0465** |
 
 **Table 3b.** Tỉ lệ số quận (5 Districts) mà mỗi mô hình chiếm ưu thế theo từng chỉ số.
 
 | Model | AIC (n/%) | BIC (n/%) | KS (n/%) | LLH (n/%) | $R^2$ (n/%) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Exponential** | **2 (40%)** | **2 (40%)** | 1 (20%) | **2 (40%)** | 0 (0%) |
-| **Shifted Power-Law** | **2 (40%)** | **2 (40%)** | **3 (60%)** | 0 (0%) | 1 (20%) |
-| **Gamma** | 1 (20%) | 1 (20%) | 0 (0%) | 1 (20%) | 0 (0%) |
-| **Lognormal** | 0 (0%) | 0 (0%) | 0 (0%) | 0 (0%) | **4 (80%)** |
-| **Trun. Lévy Flight** | 0 (0%) | 0 (0%) | 1 (20%) | **2 (40%)** | 0 (0%) |
+| **Lognormal** | 0 (0%) | 0 (0%) | 1 (20%) | 0 (0%) | **5 (100%)** |
+| **Exponential** | 1 (20%) | 1 (20%) | 1 (20%) | 0 (0%) | 0 (0%) |
+| **Gamma** | **2 (40%)** | **2 (40%)** | 0 (0%) | **3 (60%)** | 0 (0%) |
+| **Shifted Power-Law** | 0 (0%) | 0 (0%) | **2 (40%)** | 0 (0%) | 0 (0%) |
+| **Trun. Lévy Flight** | **2 (40%)** | **2 (40%)** | 1 (20%) | 2 (40%) | 0 (0%) |
 
 ![District Dominance](district_dominance_by_metric.png)
 *Hình 6. Thống kê mức độ ưu thế của các mô hình tại quy mô vĩ mô (5 Districts).*
 
-Tại cấp độ District, thực tế là một **cuộc tranh giành ba bên**, không phải hai bên:
-- **Exponential**: Thắng AIC/BIC tại 40% quận, LLH tại 40% quận — mô hình tối giản nhưng hiệu quả thông tin cao.
-- **Shifted Power-Law**: Thắng AIC/BIC tại 40% quận, và **dẫn đầu KS-stat tại 60% quận** (3/5) — có khả năng bao phủ phân phối tích lũy (phần đuôi) tốt nhất ở quy mô này.
-- **Truncated Lévy Flight (TLF)**: Bất ngờ **thắng LLH tại 40% quận** (2/5) — thực tế TLF không hề thất bại, nó vẫn là mô hình hợp lý nhất về mặt xác suất tại một số quận có cấu trúc di chuyển phức tạp.
-
-**Lognormal** mất hoàn toàn vị thế thống kê (AIC/BIC = 0%), nhưng duy trì nghịch lý $R^2$ tại **80% quận** (4/5) — chứng tỏ nó khớp hình dáng phân phối tốt, nhưng thất bại trong việc ước lượng xác suất toàn bộ phân phối. Gamma chỉ thắng tại **1 quận duy nhất** (20%), vai trò vùng đệm của nó đã kết thúc ở quy mô này.
+Tại cấp độ District, thực tế là một **cuộc tranh giành giữa các mô hình hệ thống và quá độ**:
+- **Gamma và Truncated Lévy Flight (TLF)**: Cùng dẫn đầu AIC/BIC tại **40% số quận** (2/5 mỗi bên). Điều này cho thấy sự cân bằng giữa mô hình gộp (Gamma) và mô hình hệ thống (TLF) ở quy mô macro.
+- **Shifted Power-Law**: Mặc dù không thắng BIC, nhưng **dẫn đầu KS-stat tại 40% số quận**, khẳng định vị thế trong việc mô tả hình học phần đuôi dữ liệu.
+- **Lognormal**: Duy trì vị thế khớp hình dáng ($R^2=100\%$) nhưng chính thức có **0% BIC**, xác nhận sự thất bại hoàn toàn về mặt thông tin thống kê ở cấp vĩ mô.
 
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
 *Hình 3. So sánh hiệu quả của 5 mô hình tại cấp District: SPL và TLF thể hiện sự ưu việt ở phần đuôi (log-log scale), trong khi Lognormal và Gamma mặc dù khớp phần thân tốt (Linear scale) nhưng sụt giảm nhanh ở khoảng cách xa.*
@@ -316,13 +277,13 @@ Tại cấp độ District, thực tế là một **cuộc tranh giành ba bên*
 
 | Model | $k$ | LLH | AIC | BIC | $R^2$ | KS-stat |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | -19.61M | 39.23M | 39.23M | **0.9286** | 0.1291 |
-| **Shifted Power-Law** | 3 | -19.67M | 39.34M | 39.34M | 0.7820 | **0.0697** |
-| **Gamma** | 3 | -22.53M | 45.06M | 45.06M | 0.8532 | 0.2460 |
-| **Exponential** | 2 | -19.55M | **39.10M** | **39.10M** | 0.7856 | 0.0698 |
-| **Trun. Lévy Flight** | 4 | **-19.55M** | **39.10M** | **39.10M** | 0.7856 | 0.0698 |
+| **Lognormal** | 3 | **-19.41M**| **38.82M** | **38.82M** | **0.9007** | 0.1274 |
+| **Exponential** | 2 | -19.53M | 39.06M | 39.06M | 0.7620 | 0.1134 |
+| **Gamma** | 3 | -19.47M | 38.95M | 38.95M | 0.8079 | 0.1231 |
+| **Shifted Power-Law** | 3 | -19.59M | 39.19M | 39.19M | 0.7449 | **0.1096** |
+| **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | 39.06M | 0.7619 | 0.1133 |
 
-Tại thang đo toàn thành phố, **Exponential và TLF cùng hòa nhau** về AIC/BIC (~39.10M) — đây là kết quả bất ngờ khi TLF, vốn bị coi là yếu ở quy mô nhỏ, lại phục hồi thành tích ở quy mô lớn nhất. **Lognormal** vẫn duy trì $R^2$ cao nhất (0.9286) nhưng BIC cao hơn (39.23M) và KS tệ nhất (0.1291), phản ánh nhất quán xu hướng xuyên suốt: LN khớp phần thân nhưng thất bại ở phần đuôi. **SPL** bất ngờ có KS tốt nhất (0.0697) nhưng BIC tệ nhất trong nhóm dẫn đầu (39.34M). **Gamma** là mô hình tệ nhất ở Global với BIC 45.06M và KS 0.2460.
+Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có vẻ mâu thuẫn với xu hướng suy giảm ở các cấp độ trước, nhưng có thể giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
 
 Để minh chứng cho đặc tính "đuôi" của dữ liệu di chuyển toàn thành phố, chúng tôi thực hiện các biểu đồ trực quan hóa quan trọng sau:
 
@@ -343,102 +304,39 @@ Tại thang đo toàn thành phố, **Exponential và TLF cùng hòa nhau** về
 
 Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh chuyển dịch liền mạch từ cá nhân đến hệ thống.
 
-**Table 5.** Transition of model dominance (BIC Winner %) across four spatial scales.
+**Table 5.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian (MLE).
 
 | Distribution              | Subzone (303) | 40 Groups (34) | District (5) | Global (1)  |
 |---------------------------|:-------------:|:--------------:|:------------:|:-----------:|
-| **Lognormal**             | **0.2805**    | 0.2059         | 0.0000       | 0.0000      |
-| **Gamma**                 | 0.2409        | **0.3824**     | 0.2000       | 0.0000      |
-| **Shifted Power-Law**     | **0.2805**    | 0.0882         | **0.4000**   | 0.0000      |
-| **Exponential**           | 0.1650        | 0.2647         | **0.4000**   | **~0.5000** |
-| Truncated Lévy Flight     | 0.0330        | 0.0588         | 0.0000       | **~0.5000** |
+| **Lognormal**             | **0.5974**    | 0.2941         | 0.0000       | **1.0000**  |
+| **Gamma**                 | 0.3465        | **0.5882**     | **0.4000**   | 0.0000      |
+| **Shifted Power-Law**     | 0.0297        | 0.0294         | 0.0000       | 0.0000      |
+| **Exponential**           | 0.0231        | 0.0588         | 0.2000       | 0.0000      |
+| **Trun. Lévy Flight**     | 0.0033        | 0.0294         | **0.4000**   | 0.0000      |
 
 *Lưu ý: Tại Global (n=1), Exp và TLF hòa nhau về AIC/BIC (~39.10M). Tỉ lệ 0.5/0.5 phản ánh sự hòa.*
 
 **Quy luật Chuyển dịch (The Transition Path):**
-1. **Micro (LN ≈ SPL)**: LN thắng về hình dáng ($R^2$), LN và SPL **hòa nhau** về thống kê (BIC 28% mỗi bên); SPL dẫn KS (33%).
-2. **Intermediate (Gamma dominates, SPL collapses)**: Gamma thống trị rõ rệt (AIC/BIC/LLH 38%). SPL sụt giảm đột ngột từ 28% → 9% (BIC) do mất hiệu quả ở scale trung gian.
-3. **Macro (Exp ≈ SPL; TLF phục hồi)**: Exp và SPL **hòa nhau** (AIC/BIC 40% mỗi bên); TLF bất ngờ thắng LLH tại 40% quận; SPL thắng KS (60%).
-4. **Global (Exp = TLF)**: Exp và TLF **hòa nhau** về AIC/BIC; SPL có KS tốt nhất; LN có $R^2$ tốt nhất nhưng thông tin kém.
+1. **Micro (LN dominates)**: Lognormal thắng tuyệt đối cả về hình dáng ($R^2$ 98%) và thống kê (BIC 60%). 
+2. **Intermediate (Gamma takes over)**: Gamma chiếm ưu tế rõ rệt (BIC 59%), LN sụt giảm xuống còn 29%.
+3. **Macro (Gamma / TLF Tie)**: Gamma và TLF hòa nhau về BIC (mỗi bên 40%). LN hoàn toàn biến mất (BIC 0%).
+4. **Global (LN Recovered / SPL Tail)**: Lognormal phục hồi BIC dẫn đầu nhờ độ khớp mật độ tổng thể, nhưng SPL vẫn giữ KS thấp nhất cho thấy ưu thế về hình học đuôi (tail).
 
 
-
-## 5. Discussion
-
-### 5.1. Đánh giá các Giả thuyết
-
-Dựa trên bằng chứng thực nghiệm từ 303 subzones qua 4 cấp độ quy mô không gian (Tables 1–5), chúng tôi đánh giá lại hai giả thuyết đã đặt ra ở Mục 2.2.
-
----
-
-**Giả thuyết 1 — Có sự chuyển dịch mô hình tối ưu dựa trên quy mô quan sát:** ✅ **XÁC NHẬN**
-
-*1a. Vi mô phản ánh thói quen cá nhân (Local optimization):*
-
-Dữ liệu xác nhận. Tại cấp Subzone (Table 1b), Lognormal — mô hình đặc trưng cho hành vi cá nhân có đỉnh rõ rệt — thống trị $R^2$ tại **69% số vùng** (210/303), bỏ xa Gamma (26%) và SPL (2%). Tuy nhiên, bức tranh thống kê phức tạp hơn giả thuyết ban đầu: về BIC, **LN và SPL hòa nhau** (28% mỗi bên), và SPL dẫn đầu KS-stat tại 33%. Điều này cho thấy ngay ở quy mô nhỏ nhất, cơ chế hệ thống (SPL) đã cạnh tranh trực tiếp với thói quen cá nhân (LN) tại khoảng một phần ba số phân khu.
-
-*1b. Vĩ mô bị chi phối bởi đặc tính hệ thống:*
-
-Xác nhận hoàn toàn. Tại cấp District (Table 3b), Lognormal **mất toàn bộ vị thế thống kê** (AIC/BIC/KS/LLH = 0%), nhường chỗ cho Exponential (AIC/BIC 40%), SPL (AIC/BIC 40%, KS 60%) và TLF (LLH 40%). Tại Global (Table 4), Exp và TLF cùng đạt AIC/BIC tốt nhất (~39.10M), xác nhận sự chi phối hoàn toàn của quy luật hệ thống.
-
-*Phát hiện bổ sung — Vùng đệm Gamma ở quy mô trung gian:*
-
-Giả thuyết ban đầu chỉ dự đoán hai thái cực (vi mô vs vĩ mô). Dữ liệu bổ sung thêm một giai đoạn trung gian: tại cấp 40 Groups (Table 2b), **Gamma thống trị tuyệt đối** (AIC/BIC/LLH đều 38%), đóng vai trò "vùng đệm" nơi thói quen cá nhân bắt đầu bị gộp lại nhưng chưa bị hệ thống hóa hoàn toàn.
-
-*Tổng hợp xu hướng chuyển pha (Table 5 — BIC Winner %):*
-
-| Mô hình | Subzone | 40 Groups | District | Global | Xu hướng |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **LN** | **28%** | 21% | 0% | 0% | ↘ Suy giảm đơn điệu |
-| **Gamma** | 24% | **38%** | 20% | 0% | ↗↘ Đạt đỉnh ở trung gian |
-| **SPL** | **28%** | 9% | **40%** | 0% | ↘↗ Hiệu ứng "skip-scale" |
-| **Exp** | 17% | 26% | **40%** | **~50%** | ↗ Tăng đơn điệu |
-| **TLF** | 3% | 6% | 0% | **~50%** | ↗ Phục hồi ở quy mô lớn |
-
----
-
-**Giả thuyết 2 — TLF sẽ không còn đạt hiệu quả cao tại đô thị nén Singapore:** ⚠️ **Chưa đúng hoàn toàn**
-
-Giả định ban đầu cho rằng giới hạn địa lý (~50 km) của Singapore sẽ làm các di chuyển dài bị dứt đoạn, khiến TLF mất hiệu quả ở **nhiều quy mô quan sát**. Dữ liệu cho thấy điều này chỉ đúng một phần:
-
-| Quy mô | TLF BIC | TLF LLH | TLF AIC | Đánh giá |
-| :--- | :---: | :---: | :---: | :--- |
-| **Subzone** | 3% | 11% | 5% | ✅ Đúng — TLF rất yếu |
-| **40 Groups** | 6% | 9% | 9% | ✅ Đúng — TLF vẫn yếu |
-| **District** | 0% | **40%** | 0% | ❌ Sai — TLF phục hồi LLH tại 2/5 quận |
-| **Global** | **~50%** | **~50%** | **~50%** | ❌ Sai — TLF **hòa với mô hình tốt nhất** |
-
-**Phân tích nguyên nhân:** Sự thất bại của TLF ở quy mô nhỏ **không phải do giới hạn địa lý**, mà do **over-parameterization**:
-- TLF có **4 tham số** ($C, r_0, \beta, \kappa$) — nhiều nhất trong 5 mô hình. Tại mỗi subzone, số điểm dữ liệu chỉ có vài chục bin, khiến BIC phạt nặng mô hình phức tạp.
-- Khi dữ liệu tăng lên hàng triệu chuyến đi (District, Global), 4 tham số được ước lượng chính xác hơn và hình phạt BIC trở nên tương đối nhỏ. Lúc này, tham số truncation $\kappa$ thực sự phản ánh giới hạn ~50 km của Singapore, giúp TLF cạnh tranh ngang bằng Exponential.
-
-**Kết luận điều chỉnh:** Giả định 2 đúng ở quy mô vi mô và trung gian, nhưng sai ở quy mô vĩ mô và toàn thành phố. Phát biểu chính xác hơn: *"Tại đô thị nén, TLF mất tính phổ quát xuyên quy mô — nó chỉ phát huy khi khối lượng dữ liệu đủ lớn để bộc lộ đồng thời cả cấu trúc heavy-tail lẫn truncation."*
-
-
-
-
-### 5.2. Cơ chế Chuyển dịch
-
-- **Cấp độ cá nhân (Subzone):** Người dân tối ưu hóa tiện ích cục bộ — chọn điểm đến gần và quen thuộc, tạo ra hình dáng Lognormal với đỉnh rõ rệt. Tuy nhiên, một tỉ lệ đáng kể ~28% vùng đã có dấu hiệu cơ chế SPL ngay từ quy mô nhỏ nhất, có thể là các phân khu có kết nối MRT tốt hoặc nằm gần các hub trung tâm.
-- **Vùng đệm (40 Groups):** Khi gộp ~7.5 subzone lại, các đặc tính cá nhân đa dạng triệt tiêu nhau, để lộ cấu trúc tổng hợp của Gamma — phân phối "trung bình" của nhiều thói quen cá nhân xếp chồng nhau. Đây cũng là quy mô mà Exp bắt đầu xuất hiện (26%), báo hiệu sự cứng lại của hệ thống.
-- **Cấp độ hệ thống (District):** Các trung tâm trọng điểm (CBD, Jurong East, Tampines) chi phối toàn bộ luồng di chuyển cấp quận. SPL mô tả tốt nhất phân phối tích lũy (KS 60%) vì nó nắm bắt sức hút power-law của các hub đô thị. TLF cạnh tranh được vì tham số $\kappa$ của nó phù hợp với giới hạn địa lý Singapore (~50 km).
-- **Hiện tượng SPL "skip-scale":** SPL hoạt động tốt ở hai thái cực (Subzone BIC 28%, District BIC 40%) nhưng sụp đổ ở quy mô trung gian (40G BIC 9%). Điều này gợi ý SPL mô tả **hai cơ chế khác nhau**: ở vi mô là hành vi "khám phá ngẫu nhiên" cục bộ, ở vĩ mô là sức hút trung tâm đô thị — cả hai đều có cấu trúc power-law nhưng từ nguồn gốc khác nhau.
 
 ## 6. Conclusion
 
-Nghiên cứu này đã thành công trong việc giải mã sự mâu thuẫn giữa các quy luật di chuyển tại Singapore thông qua lăng kính quy mô không gian, với các kết luận chính sau:
+Nghiên cứu này đã thành công trong việc giải mã sự mâu thuẫn giữa các quy luật di chuyển tại Singapore thông qua lăng kính quy mô không gian và phương pháp ước lượng MLE, với các kết luận chính sau:
 
-1. **Không có người thắng cuộc tuyệt đối ở bất kỳ quy mô nào.** Mỗi quy mô là sự tranh giành giữa 2–3 mô hình theo từng tiêu chí đánh giá khác nhau. Ở quy mô vi mô, **Lognormal và SPL hòa nhau** về BIC (28% mỗi bên). Ở quy mô District, **Exp, SPL, và TLF** đều cạnh tranh. Ở Global, **Exp và TLF hòa nhau**. Đây là bằng chứng cho thấy hành vi di chuyển đô thị không thể tóm gọn bằng một mô hình duy nhất.
+1. **Không có người thắng cuộc tuyệt đối ở mọi quy mô.** Mỗi nấc thang không gian là một sự chuyển dịch quyền lực: Ở quy mô vi mô, **Lognormal thống trị tuyệt đối** (60% BIC). Ở quy mô trung gian, **Gamma vươn lên** (59% BIC). Ở quy mô District, **Gamma và TLF hòa nhau** (40% mỗi bên). Kết quả này bác bỏ quan điểm về một "quy luật phổ quát" duy nhất cho toàn bộ hệ thống đô thị.
 
-2. **Bốn giai đoạn chuyển pha** được xác lập từ dữ liệu thực nghiệm 303 subzones: (i) *Vi mô*: LN thắng hình dáng, LN–SPL hòa thống kê; (ii) *Trung gian*: Gamma thống trị, SPL sụp đổ, Exp trỗi dậy; (iii) *Vĩ mô*: Exp–SPL hòa BIC, TLF phục hồi LLH; (iv) *Global*: Exp–TLF hòa BIC, LN duy trì $R^2$ cao nhất nhưng kém thông tin nhất.
+2. **Bốn giai đoạn chuyển pha thực nghiệm:** (i) *Vi mô*: LN thắng tuyệt đối hình dáng và thống kê; (ii) *Trung gian*: Gamma thống trị, LN bắt đầu suy giảm; (iii) *Vĩ mô*: Gamma–TLF hòa BIC, SPL dẫn đầu KS-stat; (iv) *Global*: LN phục hồi BIC nhưng SPL giữ ưu thế về mô tả đuôi dữ liệu.
 
-3. **Nghịch lý $R^2$ vs BIC là nhất quán xuyên suốt.** Lognormal duy trì vị trí #1 về $R^2$ ở tất cả 4 quy mô (69% → 59% → 80% → 0.929), trong khi thứ hạng BIC của nó suy giảm đơn điệu: #1 → #3 → #5 → #5. Đây là minh chứng định lượng rõ ràng nhất cho sự mâu thuẫn giữa độ khớp hình học và hiệu quả thông tin xác suất.
+3. **Ý nghĩa của phương pháp MLE:** Việc chuyển từ NLS sang MLE bộc lộ rõ hơn sức mạnh của Lognormal tại quy mô nhỏ (tăng từ 28% lên 60% BIC) và sự cạnh tranh của TLF tại quy mô lớn. Điều này cho thấy tính chính xác của thuật toán ước lượng đóng vai trò then chốt trong việc xác định mô hình tối ưu.
 
-4. **TLF không thất bại tại đô thị nén — nó chỉ cần đủ dữ liệu.** Ở quy mô nhỏ (Subzone: BIC 3%), TLF yếu kém. Nhưng ở quy mô lớn hơn, TLF phục hồi: thắng LLH tại 40% quận (District) và hòa BIC với Exp ở Global. Điều này cho thấy TLF không thất bại vì giới hạn địa lý, mà vì nó cần một lượng chuyến đi đủ lớn để bộc lộ đặc tính heavy-tail với truncation.
+4. **Nghịch lý $R^2$ vs BIC là nhất quán xuyên suốt.** Lognormal duy trì vị trí #1 về $R^2$ ở tất cả các quy mô (98% → 97% → 100% → 0.90), trong khi thứ hạng BIC của nó biến động mạnh. Đây là minh chứng định lượng cho sự mâu thuẫn giữa việc khớp hình dáng hình học và hiệu quả thông tin xác suất.
 
-5. **Hiện tượng SPL "skip-scale"** là phát hiện mới: SPL hiệu quả ở vi mô (BIC 28%) và vĩ mô (BIC 40%) nhưng sụp đổ ở trung gian (BIC 9%). Điều này gợi ý SPL mô tả hai cơ chế khác nhau — hành vi khám phá cục bộ và lực hút trung tâm đô thị — đều có cấu trúc power-law nhưng ẩn đi ở quy mô trung gian khi Gamma chi phối.
-
-6. **Ý nghĩa thực tiễn cho quy hoạch:** Dùng **Lognormal** khi quy hoạch cấp phường (ước tính tần suất sử dụng POI cục bộ). Dùng **SPL** khi thiết kế hành lang giao thông liên quận (phân phối tích lũy KS tốt nhất ở District). Dùng **Exponential** làm baseline cho mô hình toàn đô thị (thống kê hiệu quả nhất ở Global). Không dùng một mô hình duy nhất cho mọi quy mô.
+5. **Ý nghĩa thực tiễn cho quy hoạch:** Dùng **Lognormal** khi quy hoạch cấp phường (micro-management). Dùng **Gamma/TLF** khi phân tích luồng di chuyển liên quận. Dùng **Shifted Power-Law** khi cần mô tả chính xác các hành vi di chuyển cực xa (long-tail) xuyên hòn đảo.
 
 ---
 ## 7. References

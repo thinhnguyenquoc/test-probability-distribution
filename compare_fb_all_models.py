@@ -8,7 +8,7 @@ Output: fb_vs_all_models.csv
 
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 from scipy.stats import wasserstein_distance
 import warnings
 warnings.filterwarnings('ignore')
@@ -108,8 +108,16 @@ for d_id in districts_list:
 
     for model_name, (func, p0, bounds) in models.items():
         try:
-            popt, _ = curve_fit(func, x_data, y_prob, p0=p0, bounds=bounds, maxfev=15000)
+            def nll(params):
+                y_raw = func(x_data, *params)
+                if np.sum(y_raw) <= 0 or np.any(y_raw < 0): return 1e18
+                y_pmf = y_raw / np.sum(y_raw)
+                return -np.sum(y_counts * np.log(np.clip(y_pmf, 1e-300, 1)))
 
+            # Use Nelder-Mead for very small data sets (like districts)
+            res = minimize(nll, p0, method='Nelder-Mead')
+            popt = res.x
+            
             # Predict on all OD pairs, then bin to FB categories
             raw_pred = func(group['euclidean_distance_km'].values, *popt)
             if np.any(np.isnan(raw_pred)) or np.sum(raw_pred) <= 0:

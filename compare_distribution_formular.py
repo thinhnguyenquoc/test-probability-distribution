@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 import scipy.stats as stats
 import warnings
 
@@ -71,25 +71,38 @@ for zone, group in df.groupby('ORIGIN_SUBZONE'):
     
     for name, (func, p0, k, bounds) in models.items():
         try:
-            popt, _ = curve_fit(func, x_data, y_prob, p0=p0, bounds=bounds, maxfev=15000)
-            y_fit_raw = func(x_data, *popt)
+            # Objective function for MLE: Negative Log-Likelihood
+            def nll(params):
+                y_raw = func(x_data, *params)
+                # Normalize to get PMF
+                if np.sum(y_raw) <= 0 or np.any(y_raw < 0):
+                    return 1e18 # High penalty for invalid params
+                y_pmf = y_raw / np.sum(y_raw)
+                y_safe = np.clip(y_pmf, 1e-300, 1)
+                return -np.sum(y_counts * np.log(y_safe))
+
+            # Reshape bounds for minimize (list of tuples)
+            bnds = list(zip(bounds[0], bounds[1]))
             
-            if np.any(np.isnan(y_fit_raw)) or np.any(np.isinf(y_fit_raw)):
+            # Initial run with minimize
+            res = minimize(nll, p0, method='L-BFGS-B', bounds=bnds, options={'maxiter': 500, 'ftol': 1e-6})
+            
+            if not res.success:
+                # Retry with Nelder-Mead if L-BFGS-B fails to find a good spot
+                res = minimize(nll, p0, method='Nelder-Mead', bounds=bnds)
+            
+            popt = res.x
+            y_fit_pmf_raw = func(x_data, *popt)
+            y_fit_pmf = y_fit_pmf_raw / np.sum(y_fit_pmf_raw)
+            
+            if np.any(np.isnan(popt)) or np.any(np.isinf(popt)):
                 continue
                 
-            r2 = r2_score_custom(y_prob, y_fit_raw)
-            
-            # PMF Normalization
-            sum_fit = np.sum(y_fit_raw)
-            if sum_fit <= 0: continue
-            y_fit_pmf = y_fit_raw / sum_fit
-            
+            r2 = r2_score_custom(y_prob, y_fit_pmf_raw)
             model_cdf = np.cumsum(y_fit_pmf)
             ks_stat = np.max(np.abs(empirical_cdf - model_cdf))
             
-            # Tránh chia/log bằng 0
-            y_fit_safe = np.clip(y_fit_pmf, 1e-300, 1)
-            log_likelihood = np.sum(y_counts * np.log(y_fit_safe))
+            log_likelihood = -res.fun # Negative of NLL is Log-Likelihood
             
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(total_trips) - 2 * log_likelihood
