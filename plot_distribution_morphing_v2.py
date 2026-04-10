@@ -13,6 +13,12 @@ def gamma_pdf(r, alpha, l):
 def spl_pdf(r, r0, beta):
     return (r + r0)**(-beta)
 
+def tlf_pdf(r, r0, beta, kappa):
+    return (r + r0)**(-beta) * np.exp(-r / kappa)
+
+def exp_pdf(r, l):
+    return np.exp(-r / l)
+
 def get_nll(params, r, h, pdf_f):
     p = pdf_f(r, *params)
     if np.any(p <= 0) or np.any(np.isinf(p)): return 1e18
@@ -44,13 +50,13 @@ def main():
     # Prepare datasets for each scale
     data_scales = []
     
-    # 1. Representative Subzone (Choosing one with good trip count)
-    sub_id = 'AMSZ01' # Used in earlier analysis, has ~27k trips
+    # 1. Representative Subzone (AMSZ01)
+    sub_id = 'AMSZ01'
     data_scales.append(df_main[df_main['zone'] == sub_id])
     
     # 2. Representative Group
     df_group = df_main.merge(groups_df, left_on='zone', right_on='zone_id')
-    grp_id = df_group['group_id'].iloc[0] # Just pick first group
+    grp_id = df_group['group_id'].iloc[0]
     data_scales.append(df_group[df_group['group_id'] == grp_id])
     
     # 3. Representative District
@@ -64,10 +70,18 @@ def main():
     models_config = {
         'Lognormal': (lognormal_pdf, [1.0, 1.0], [(-5, 5), (0.1, 5)]),
         'Gamma': (gamma_pdf, [1.5, 3.0], [(0.1, 10), (0.1, 30)]),
-        'SPL': (spl_pdf, [1.0, 2.5], [(0.1, 10), (0.1, 10)])
+        'TLF': (tlf_pdf, [1.0, 2.0, 20.0], [(0.1, 20), (0.1, 10), (1, 100)]),
+        'SPL': (spl_pdf, [1.0, 2.5], [(0.1, 10), (0.1, 10)]),
+        'Exponential': (exp_pdf, [5.0], [(0.1, 100)])
     }
     
-    colors = {'Lognormal': '#1f77b4', 'Gamma': '#2ca02c', 'SPL': '#ff7f0e'}
+    colors = {
+        'Lognormal': '#1f77b4', 
+        'Gamma': '#2ca02c', 
+        'TLF': '#41b6c4',
+        'SPL': '#ff7f0e',
+        'Exponential': '#d62728'
+    }
     
     fig, axes = plt.subplots(1, 4, figsize=(24, 7))
     
@@ -77,23 +91,35 @@ def main():
         bins = np.linspace(0.1, min(df['distance'].max(), 40), 40)
         centers = 0.5 * (bins[:-1] + bins[1:])
         h, _ = np.histogram(df['distance'], bins=bins, weights=df['trips'], density=True)
+        h_fit_counts, _ = np.histogram(df['distance'], bins=bins, weights=df['trips'])
+        mask = h_fit_counts > 0
+        r_fit_c, h_fit_c = centers[mask], h_fit_counts[mask]
+        N_total = np.sum(h_fit_c)
         
-        ax.bar(centers, h, width=np.diff(bins)[0], color='black', alpha=0.2, label='Empirical')
+        ax.bar(centers, h, width=np.diff(bins)[0], color='black', alpha=0.15, label='Empirical')
         
-        # Fits
-        h_fit, _ = np.histogram(df['distance'], bins=bins, weights=df['trips'])
-        mask = h_fit > 0
-        fits = fit_data(centers[mask], h_fit[mask], models_config)
+        # Fit all 5 models and calculate BIC
+        results = []
+        for name, (pdf_f, p0, bnds) in models_config.items():
+            res = minimize(get_nll, p0, args=(r_fit_c, h_fit_c, pdf_f), method='L-BFGS-B', bounds=bnds)
+            if res.success:
+                ll = -res.fun
+                k = len(p0)
+                bic = k * np.log(N_total) - 2 * ll
+                results.append({'name': name, 'params': res.x, 'bic': bic, 'pdf_f': pdf_f})
         
-        # Plot continuous curves
+        # Sort by BIC and pick top 3
+        results = sorted(results, key=lambda x: x['bic'])[:3]
+        
+        # Plot continuous curves for top 3
         x_plot = np.linspace(0.1, 40, 200)
         max_y = 0.1
         if len(h) > 0 and not np.isnan(np.max(h)):
             max_y = np.max(h)
 
-        for name, params in fits.items():
-            y_plot = models_config[name][0](x_plot, *params)
-            # Filter NaNs
+        for res_item in results:
+            name = res_item['name']
+            y_plot = res_item['pdf_f'](x_plot, *res_item['params'])
             y_plot = np.nan_to_num(y_plot)
             if np.sum(y_plot) > 0:
                 y_norm = y_plot / np.trapz(y_plot, x_plot)
@@ -105,8 +131,8 @@ def main():
         ax.set_title(f"Scale: {scales[i]}", fontsize=16, weight='bold')
         ax.set_xlabel("Distance (km)")
         if i == 0: ax.set_ylabel("Density")
-        ax.legend(fontsize=10)
-        ax.set_ylim(0, max_y * 1.2)
+        ax.legend(fontsize=10, loc='upper right', frameon=True)
+        ax.set_ylim(0, max_y * 1.3)
         ax.grid(alpha=0.3)
 
     plt.tight_layout()

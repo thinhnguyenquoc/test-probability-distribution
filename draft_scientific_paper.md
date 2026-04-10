@@ -9,10 +9,6 @@ date: "April 2026"
 ## 1. Abstract
 **Quy luật di chuyển của con người không tuân theo một phân phối phổ quát duy nhất; thay vào đó, nó là một tiến trình chuyển pha phụ thuộc quy mô (scale-dependent phase transition).** Nghiên cứu này cung cấp bằng chứng thực nghiệm từ dữ liệu di chuyển thực tế tại Singapore để khẳng định luận điểm này. Bằng việc so sánh 5 mô hình (Lognormal, Shifted Power-Law, Gamma, Exponential, TLF) qua 4 nấc thang không gian từ vi mô đến vĩ mô, chúng tôi phát hiện một sự chuyển dịch liền mạch: tại cấp độ Subzone, **Lognormal** đạt hiệu quả thống kê vượt trội (59.7% BIC) thể hiện thói quen cá nhân; tại cấp độ trung gian, **Gamma** đóng vai trò vùng đệm (58.8% BIC); và tại cấp độ District, các đặc tính hệ thống trỗi dậy với sự lên ngôi của **Gamma** và **Truncated Lévy Flight (TLF)** (mỗi bên 40% BIC). Kết quả nghiên cứu xác nhận rằng sự tương tác giữa thói quen cá nhân và lực hấp dẫn hệ thống được quyết định bởi mức độ tổng hợp không gian.
 
-
-
-
-
 ## 2. Introduction & Hypothesis
 ### 2.1. Research Gap (Khoảng trống nghiên cứu)
 
@@ -171,22 +167,7 @@ Việc phân chia này tạo ra các thực thể địa lý có kích thước 
 ![Ba cấp độ phân vùng không gian tại Singapore](singapore_spatial_scales.png)
 *Hình 1. Hệ thống phân vùng đa quy mô tại Singapore: (A) 303 Subzones (Vi mô), (B) 40 Nhóm trung gian, và (C) 5 Quận (Vĩ mô).*
 
-### 3.3. Block Bootstrap với 40 Group-Blocks
-
-Các subzone không độc lập về mặt không gian — các subzone lân cận chia sẻ hạ tầng giao thông và có phân phối di chuyển tương đồng. Bootstrap thông thường (resample từng subzone độc lập) sẽ **đánh giá thấp phương sai** do bỏ qua tương quan không gian, dẫn đến khoảng tin cậy hẹp giả tạo.
-
-**Giải pháp:** Sử dụng **block bootstrap** với **40 group-blocks** (được phân cụm từ 303 subzones dựa trên khoảng cách và district) làm đơn vị resample. Việc tăng số lượng block từ 5 (districts) lên 40 giúp tăng độ phân giải của phân phối bootstrap, cung cấp khoảng tin cậy (CI) chính xác và đáng tin cậy hơn.
-
-**Quy trình:**
-1. **Định nghĩa block:** 40 groups địa lý liền kề (trung bình ~7.5 subzones/block).
-2. **Resample:** Chọn ngẫu nhiên 40 blocks **có hoàn lại** (with replacement).
-3. **Tổng hợp:** Gom tất cả subzones từ các blocks được chọn → tập dữ liệu bootstrap.
-4. **Tính toán:** Trên mỗi mẫu bootstrap, tính lại BIC Best % và Mean KS-stat cho 5 mô hình.
-
-5. **Lặp lại:** 1000 lần tái lấy mẫu.
-6. **Khoảng tin cậy:** 95% CI = percentile [2.5%, 97.5%] từ 1000 giá trị bootstrap.
-
-**Lợi ích:** Việc sử dụng 40 blocks giúp CI phản ánh sát thực tế hơn so với việc chỉ dùng 5 districts (vốn mang tính bảo thủ cao do số lượng block quá ít).
+Để đảm bảo tính tin cậy của các ước lượng, chúng tôi áp dụng phương pháp **block bootstrap** với 40 cụm địa lý (group-blocks) để tính toán khoảng tin cậy 95% (CI), giúp phản ánh chính xác các tương quan không gian nội vùng.
 
 
 ## 4. Results: The Scale-Transition
@@ -241,19 +222,7 @@ Khi dữ liệu được gom nhóm lên cấp độ 40 vùng địa lý, đặc 
 **Nhận xét quy mô Trung gian - Sự trỗi dậy của vùng đệm Gamma:**
 Tại quy mô này, **Gamma thống trị rõ rệt** (BIC đạt 58.8%), đóng vai trò biểu diễn cho sự trung hòa các thói quen cá nhân riêng lẻ. Vị thế thống kê của Lognormal giảm mạnh từ 60% (Subzone) xuống còn **29.4%**. Đây là giai đoạn quá độ rõ rệt nơi cấu trúc hệ thống bắt đầu hình thành nhưng chưa lấn át hoàn toàn.
 
-#### 4.2.1. Phân tích độ nhạy của Phân vùng Trung gian (Robustness Check)
-
-Để đảm bảo ưu thế của Gamma không phụ thuộc vào cách chia 40 nhóm cụ thể, chúng tôi thực hiện phân tích độ nhạy bằng cách thay đổi quy mô nén dữ liệu ($K = 30, 40, 50$ nhóm) sử dụng thuật toán phân vùng không gian liền kề (Contiguous Hierarchical Clustering).
-
-**Bảng 4.** Độ bền vững của ưu thế mô hình Gamma qua các kịch bản phân vùng trung gian.
-
-| Số lượng nhóm ($K$) | Gamma (BIC Winner %) | Lognormal (BIC Winner %) | TLF (Winner %) |
-|:-------------------|:-------------------:|:-----------------------:|:--------------:|
-| 30 nhóm (6/quận)   | **58.3%**           | 29.2%                   | 12.5%          |
-| 40 nhóm (8/quận)   | **64.7%**           | 23.5%                   | 11.8%          |
-| 50 nhóm (10/quận)  | **60.5%**           | 30.2%                   | 9.3%           |
-
-Kết quả tại **Bảng 4** khẳng định tính ổn định của quy luật chuyển pha: Trong mọi kịch bản quy mô trung gian, Gamma luôn duy trì tỉ lệ thắng áp đảo (>58%), củng cố tính khách quan của phát hiện về giai đoạn "Cộng gộp hành vi".
+Phân tích độ nhạy trên các kịch bản phân vùng khác nhau ($K=30, 40, 50$ nhóm) khẳng định tính ổn định của quy luật chuyển pha: Trong mọi kịch bản, Gamma luôn duy trì tỉ lệ thắng áp đảo (>58%), củng cố tính khách quan của giai đoạn "Cộng gộp hành vi".
 
 
 Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
@@ -290,7 +259,7 @@ Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc 
 | **TLF vs LN**       | Vuong     | $V < -31.0$             | TLF is significantly better   |
 
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
-*Hình 6. So sánh trực quan hiệu quả của các mô hình tại cấp District: SPL bộc lộ sức mạnh ở phần đuôi dữ liệu.*
+*Hình 5. So sánh trực quan hiệu quả của các mô hình tại cấp District: SPL bộc lộ sức mạnh ở phần đuôi dữ liệu.*
 
 ### 4.4. Khảo sát tại Cấp Toàn thành phố - Global (City-wide)
 
@@ -308,10 +277,8 @@ Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc 
 
 Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
 
-![Phân bố khoảng cách (Histogram)](distance_histogram.png)
-![Biểu đồ Log-Log với các đường khớp mô hình](distance_loglog.png)
-![Hàm phân phối tích lũy bổ sung (CCDF)](distance_ccdf.png)
-*Hình 7. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram, (B) Log-Log Plot, và (C) CCDF.*
+![Phân tích đa biểu đồ phân phối di chuyển](global_distributions_combined.png)
+*Hình 6. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram, (B) Log-Log Plot, và (C) CCDF.*
 
 ### 4.5. Tổng hợp So sánh: Sự chuyển dịch theo 4 quy mô không gian
 
@@ -329,82 +296,20 @@ Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh ch
 
 *Lưu ý: Tại quy mô Global (n=1), sự lên ngôi của Lognormal phản ánh sự tập trung của thói quen tại vùng lõi dân cư, trong khi các mô hình hệ thống (SPL/TLF) mô tả tốt hình thái lan tỏa (KS-stat).*
 
-```mermaid
-graph TD
-    %% Define Scales
-    subgraph Scales ["Scale Evolution"]
-    direction LR
-    Micro("<b>Micro</b><br/>(Subzones)") 
-    Inter("<b>Intermediate</b><br/>(Groups)")
-    Macro("<b>Macro</b><br/>(Districts)")
-    Global("<b>Global</b><br/>(City)")
-    Micro --> Inter --> Macro --> Global
-    end
-    %% Define Models
-    subgraph Distribution ["Mobility Phase Transition"]
-    direction LR
-    M1["Lognormal"]
-    M2["Gamma"]
-    M3["Gamma / SPL"]
-    M4["Lognormal + SPL"]
-    M1 --> M2 --> M3 --> M4
-    end
-    %% Define Mechanisms
-    subgraph Mechanism ["Mechanism"]
-    direction LR
-    K1["Individual<br/>habits"]
-    K2["Behavioral<br/>aggregation"]
-    K3["Urban<br/>structure"]
-    K4["Gravity<br/>constraints"]
-    K1 --- K2 --- K3 --- K4
-    end
-    %% Align columns
-    Micro --- M1 --- K1
-    Inter --- M2 --- K2
-    Macro --- M3 --- K3
-    Global --- M4 --- K4
-    style Distribution fill:#f9f,stroke:#333,stroke-width:2px
-    style Scales fill:#bbf,stroke:#333,stroke-width:2px
-    style Mechanism fill:#dfd,stroke:#333,stroke-width:2px
-```
 
 ![Distribution Morphing v2](distribution_morphing_v2.png)
-*Hình 8. **Distribution Morphing (V2)**: Bằng chứng trực quan thực nghiệm cho Tiến trình Chuyển pha. Biểu đồ cho thấy sự biến đổi của phân phối thực tế (histogram) và các đường khớp mô hình (LN, Gamma, SPL) khi quy mô mở rộng từ cá nhân (Subzone) đến hệ thống (Global).*
+*Hình 7. **Distribution Morphing**: Bằng chứng trực quan thực nghiệm cho Tiến trình Chuyển pha. Biểu đồ cho thấy sự biến đổi của phân phối thực tế (histogram) và top 3 mô hình tối ưu nhất (theo BIC) tại từng quy mô cụ thể khi mở rộng từ cá nhân (Subzone) đến hệ thống (Global).*
 
-### 4.6. Kiểm chứng độ bền vững với Spatial Cross-Validation
+Kiểm chứng độ bền vững qua **Spatial Cross-Validation** (Out-of-sample log-loss) cho thấy tại quy mô Subzone, Lognormal và SPL chiếm ưu thế tuyệt đối về khả năng dự báo (~74%), khẳng định di chuyển cá thể tại đô thị nén là kết quả của sự thói quen và tối ưu hóa thay vì các quy luật ngẫu nhiên.
 
-Kết quả kiểm tra chéo trên 40 block địa lý trang bị cho mô hình khả năng tổng quát hóa mà không phụ thuộc vào BIC phụ thuộc cỡ mẫu.
-
-**Bảng 9.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
-
-| Model              | Win Rate (%) | Predictive Preference |
-|--------------------|:------------:|:----------------------|
-| **Shifted Power-Law** | **38.4%**    | Tail Generalization   |
-| **Lognormal**      | **35.1%**    | Body/Habit Capture    |
-| Gamma              | 12.1%        | Aggregation Proxy     |
-| Exponential        | 7.3%         | -                     |
-| Trun. Lévy Flight  | 7.2%         | -                     |
-
-**Nhận xét:** Tại quy mô Micro, Lognormal và SPL chiếm ưu thế áp đảo (~74%). Điều này củng cố luận điểm: tại quy mô cá thể, di chuyển là kết quả của sự tối ưu hóa hành vi thay vì các quy luật ngẫu nhiên đơn giản.
-
-### 4.7. Phân tích phần dư cục bộ và Sai số hình thái
-
-Việc phân tích phần dư chuẩn hóa (Figure 10) bộc lộ các sai số hệ thống của mô hình theo dải khoảng cách khi so sánh toàn bộ 5 mô hình ứng viên.
-
-![Phân tích phần dư cục bộ](residual_analysis_plot.png)
-*Hình 10. Phân tích phần dư chuẩn hóa (Standardized Residuals) của cả 5 mô hình ứng viên tại quy mô Global.*
-
-**Các quan sát chính từ Figure 10:**
-- **Sự hụt hẫng cự ly ngắn (0-5 km):** Tất cả các mô hình đều gặp khó khăn trong việc khớp các chuyến đi cực ngắn.
-- **Sự phân hóa tại vùng đuôi (>25 km):** Cả **Lognormal (xanh dương)** và **Shifted Power-Law (đỏ)** đều cho thấy phần dư âm lớn, nghĩa là chúng dự báo số lượng chuyến đi xa cao hơn thực tế.
-- **Sức mạnh của Truncation:** Các mô hình có thành phần cắt hàm mũ như **Exponential (xám)**, **Gamma (xanh lá)** và **TLF (cam)** hội tụ về sát trục 0 hơn rất nhiều ở cự ly xa.
+Phân tích phần dư cục bộ (Standardized Residuals) tại quy mô Global bộc lộ sự phân hóa: Các mô hình có thành phần cắt (Truncation) như TLF hay Gamma hội tụ về sát dữ liệu thực tế hơn ở cự ly xa, trong khi Lognormal có xu hướng đánh giá cao phần đuôi.
 
 ### 4.8. Sự tiến hóa của các tham số theo quy mô không gian
 
-Bằng chứng thực nghiệm mạnh mẽ nhất cho tiến trình chuyển pha không chỉ nằm ở việc thay đổi mô hình thắng cuộc, mà còn nằm ở sự biến đổi có hệ thống của chính các tham số bên trong mô hình (Figure 11).
+Bằng chứng thực nghiệm mạnh mẽ nhất cho tiến trình chuyển pha không chỉ nằm ở việc thay đổi mô hình thắng cuộc, mà còn nằm ở sự biến đổi có hệ thống của chính các tham số bên trong mô hình (Hình 8).
 
 ![Parameter Evolution](parameter_evolution_plot.png)
-*Hình 11. Sự tiến biến của các tham số đặc trưng qua 4 cấp độ không gian đối với các mô hình tiêu biểu (với khoảng tin cậy 95%).*
+*Hình 8. Sự tiến biến của các tham số đặc trưng qua 4 cấp độ không gian đối với các mô hình tiêu biểu (với khoảng tin cậy 95%).*
 
 **Các phát hiện từ sự tiến hóa tham số:**
 - **Hiệu ứng giới hạn địa lý ($\kappa$):** Tham số cắt $\kappa$ của mô hình TLF giảm liên tục từ **~25 km (Subzone)** xuống còn **~6 km (Global)**. Điều này phản ánh một quy luật vật lý khách quan: khi quy mô quan sát mở rộng toàn đảo, sự ràng buộc của biên giới tự nhiên (EOI - End of Island) trở nên áp đảo, buộc các hành trình dài phải bị cắt cụt (truncated) mạnh hơn để tồn tại trong không gian hữu hạn.
@@ -433,15 +338,9 @@ Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL/TLF*
 
 ## 6. Conclusion
 
-Nghiên cứu này đã thành công trong việc giải mã sự mâu thuẫn giữa các quy luật di chuyển tại Singapore thông qua lăng kính quy mô không gian và phương pháp ước lượng MLE, với các kết luận chính sau:
+1. **Quy luật chuyển pha theo quy mô:** Nghiên cứu bác bỏ quan điểm "quy luật phổ quát" duy nhất. Ở quy mô vi mô, thói quen cá nhân (**Lognormal**) thống trị. Ở quy mô trung gian, sự cộng gộp hành vi tạo ra ưu thế cho **Gamma**. Ở quy mô vĩ mô, các đặc tính hệ thống dẫn đến sự lên ngôi của **Gamma và TLF**.
 
-1. **Sự chuyển dịch rõ rệt theo quy mô.** Mỗi nấc thang không gian là một sự chuyển dịch quyền lực: Ở quy mô vi mô, **Lognormal thống trị** (59.7% BIC). Ở quy mô trung gian, **Gamma vươn lên** (58.8% BIC). Ở quy mô District, **Gamma và TLF hòa nhau** (40% mỗi bên). Kết quả này bác bỏ quan điểm về một "quy luật phổ quát" duy nhất cho toàn bộ hệ thống đô thị.
-
-2. **Bốn giai đoạn chuyển pha thực nghiệm:** (i) *Vi mô*: LN thắng thống kê; (ii) *Trung gian*: Gamma thống trị, LN bắt đầu suy giảm; (iii) *Vĩ mô*: Gamma–TLF hòa BIC, SPL dẫn đầu KS-stat; (iv) *Global*: LN phục hồi BIC nhưng SPL giữ ưu thế về mô tả đuôi dữ liệu.
-
-3. **Ý nghĩa của phương pháp MLE:** Việc áp dụng MLE bộc lộ rõ hơn sức mạnh của Lognormal tại quy mô nhỏ và sự cạnh tranh của TLF tại quy mô lớn, cung cấp độ tin cậy cao hơn cho các ước lượng tham số.
-
-4. **Ý nghĩa thực tiễn cho quy hoạch:** Dùng **Lognormal** khi quy hoạch cấp phường (micro-management). Dùng **Gamma/TLF** khi phân tích luồng di chuyển liên quận. Dùng **Shifted Power-Law** khi cần mô tả chính xác các hành vi di chuyển cực xa (long-tail) xuyên hòn đảo.
+2. **Các đô thị nén và giới hạn vật lý:** Khác với các siêu đô thị lớn, giới hạn địa lý tại Singapore (~50km) đóng vai trò then chốt trong việc cắt cụt hành vi di chuyển xa. Điều này làm cho mô hình **Lognormal và Gamma** đạt hiệu quả thông tin cao hơn TLF và SPL trong việc mô tả thói quen lõi của người dân.
 
 
 ---
