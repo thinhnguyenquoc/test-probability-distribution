@@ -1,10 +1,10 @@
 ---
-title: "Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore"
+title: "Scale-dependent mobility transition in Singapore"
 author: "Technical Research Report"
 date: "April 2026"
 ---
 
-# Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
+# Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
 **Quy luật di chuyển của con người không tuân theo một phân phối phổ quát duy nhất; thay vào đó, nó là một tiến trình chuyển pha phụ thuộc quy mô (scale-dependent phase transition).** Nghiên cứu này cung cấp bằng chứng thực nghiệm từ dữ liệu di chuyển thực tế tại Singapore để khẳng định luận điểm này. Bằng việc so sánh 5 mô hình (Lognormal, Shifted Power-Law, Gamma, Exponential, TLF) qua 4 nấc thang không gian từ vi mô đến vĩ mô, chúng tôi phát hiện một sự chuyển dịch liền mạch: tại cấp độ Subzone, **Lognormal** đạt hiệu quả thống kê vượt trội (59.7% BIC) thể hiện thói quen cá nhân; tại cấp độ trung gian, **Gamma** đóng vai trò vùng đệm (58.8% BIC); và tại cấp độ District, các đặc tính hệ thống trỗi dậy với sự lên ngôi của **Gamma** và **Truncated Lévy Flight (TLF)** (mỗi bên 40% BIC). Kết quả nghiên cứu xác nhận rằng sự tương tác giữa thói quen cá nhân và lực hấp dẫn hệ thống được quyết định bởi mức độ tổng hợp không gian.
@@ -61,8 +61,9 @@ Hệ thống hóa các ký hiệu toán học và thuật ngữ chính dùng tro
 | $k, N$ | Số lượng tham số mô hình và Tổng số chuyến đi quan sát (Cỡ mẫu) |
 | LLH, AIC, BIC | Log-Likelihood, Akaike/Bayesian Information Criterion (Dùng chọn mô hình) |
 | KS-stat, AD-stat | Thống kê đo độ lệch tích lũy (Kolmogorov-Smirnov) và độ lệch phần đuôi |
+| MDL | Minimum Description Length (Dùng kiểm chứng độ phức tạp mô hình) |
 | CI | Khoảng tin cậy 95% (95% Confidence Interval) từ phân tích Block Bootstrap |
-| POI / GT | Point of Interest (Tiện ích từ OSM) và Ground Truth (Dữ liệu di chuyển thực tế) |
+| GT | Ground Truth (Dữ liệu di chuyển thực tế) |
 | Subzone / Group / District | Ba cấp độ nấc thang quy mô không gian được khảo sát trong nghiên cứu |
 
 ### 3.2. Quy trình Fitting Phân phối (Model Fitting Pipeline)
@@ -125,20 +126,8 @@ Trong đó $h_b$ là số chuyến đi thực tế trong bin $b$, $N$ là tổng
 2.  **Vuong’s Test:** Dùng để so sánh các mô hình không lồng nhau (ví dụ: Lognormal vs Gamma). Chỉ số $V > 1.96$ cho thấy mô hình A tốt hơn, $V < -1.96$ cho thấy mô hình B tốt hơn (mức ý nghĩa 5%).
 3.  **$\Delta$BIC (BIC Difference):** Theo quy tắc của Kass & Raftery [6], $\Delta$BIC > 2 là bằng chứng nhẹ, > 6 là bằng chứng mạnh và **> 10 là bằng chứng áp đảo (Very strong evidence)** cho mô hình có BIC thấp hơn.
 
-#### 3.2.7. Spatial Cross-Validation (Kiểm tra chéo không gian)
 
-Để loại bỏ hoàn toàn ảnh hưởng của cỡ mẫu ($N$) trong tiêu chuẩn BIC và đánh giá tính bền vững (robustness) của các mô hình, chúng tôi thực hiện **Spatial Cross-Validation**:
-- **Phân tách Block:** Sử dụng 40 groups địa lý (xây dựng tại mục 3.2) làm các đơn vị block để đảm bảo tính độc lập về không gian.
-- **Train-Test Split:** Thực hiện 20 lượt ShuffleSplit chọn 30 groups (75%) để fit tham số và 10 groups còn lại (25%) để kiểm tra.
-- **Chỉ số đánh giá:** Tính toán **Normalized Log-loss** (Negative Log-Likelihood trên tập test chia cho tổng chuyến đi). Đây là thước đo thuần túy về khả năng dự báo xác suất của mô hình trên dữ liệu chưa từng quan sát.
-
-#### 3.2.8. Minimum Description Length (MDL) & Effective Complexity
-
-Để đảm bảo sự công bằng giữa các mô hình có cấu trúc hàm khác nhau (ví dụ: Lognormal 3 tham số vs TLF 4 tham số) và giải quyết hạn chế của BIC khi cỡ mẫu ($N$) quá lớn, chúng tôi áp dụng nguyên lý **Minimum Description Length (MDL)**. MDL không chỉ phạt số lượng tham số $k$ mà còn xem xét "độ phức tạp hiệu dụng" (Effective Complexity) của không gian tham số:
-$$MDL(\mathcal{M}) \approx -\ln \mathcal{L}(\hat{\theta}) + \frac{k}{2} \ln \mathcal{B}$$
-Trong đó $\mathcal{B}$ là số lượng bins của histogram khoảng cách (thước đo thông tin thực tế). MDL ưu tiên các mô hình nén dữ liệu tốt nhất với cấu trúc hàm đơn giản và ổn định nhất.
-
-#### 3.2.9. Tiêu chí lựa chọn mô hình chung
+#### 3.2.7. Tiêu chí lựa chọn mô hình chung
 
 
 Với mỗi đơn vị không gian, mô hình tốt nhất được xác định theo từng tiêu chí:
@@ -153,7 +142,7 @@ Chỉ số **BIC Winner (%)** được định nghĩa là tỷ lệ phần trăm
 **Lưu ý về tập dữ liệu:** Mặc dù hệ thống phân vùng của Singapore bao gồm **323 subzones**, nghiên cứu này chỉ tập trung phân tích trên **303 subzones** có dữ liệu di chuyển thực tế. 20 subzones còn lại (bao gồm các đảo và các vùng đệm chưa quy hoạch dân cư) không ghi nhận chuyến đi đáng kể trong tập dữ liệu, do đó được loại bỏ để đảm bảo tính nhất quán của các ước lượng thống kê.
 
 
-### 3.2. Phân vùng cấp độ Trung gian (Intermediate-scale: 40 Groups)
+### 3.3. Phân vùng cấp độ Trung gian (Intermediate-scale: 40 Groups)
 
 Để làm rõ hơn lộ trình chuyển dịch từ vi mô sang vĩ mô, chúng tôi bổ sung một cấp độ quan sát trung gian bằng cách chia Singapore thành **40 khu vực địa lý** (40 groups).
 
@@ -326,7 +315,7 @@ Kết quả thực nghiệm đã cung cấp bằng chứng kỹ thuật trực t
 ### 5.1. Xác nhận các giả thuyết nghiên cứu (Hypothesis Validation)
 
 1.  **Xác nhận Giả thuyết 1 (Sự chuyển dịch theo quy mô):** 
-    Sự thay đổi áp đảo của mô hình thắng cuộc từ **Lognormal (60% ở cấp Subzone)** sang **Gamma/TLF (ở cấp District)** đã chứng minh rằng quy luật di chuyển không phải là một hằng số. Ở quy mô vi mô, "Cực Thói quen" (Habit Pole) chiếm thế thượng phong; trong khi ở quy mô vĩ mô, "Cực Hấp dẫn" (Gravity Pole) và cấu trúc hệ thống trở nên rõ nét. Phân tích đa quy mô này bác bỏ quan điểm về một quy luật đơn nhất cho toàn bộ đô thị.
+    Sự thay đổi áp đảo của mô hình thắng cuộc từ **Lognormal (60% ở cấp Subzone)** sang **Gamma/TLF (ở cấp District)** đã chứng minh rằng quy luật di chuyển không phải là một hằng số. Ở quy mô vi mô, thói quen cá nhân chiếm thế thượng phong; trong khi ở quy mô vĩ mô, các quy luật hệ thống và lực hấp dẫn đô thị trở nên rõ nét. Phân tích đa quy mô này bác bỏ quan điểm về một quy luật đơn nhất cho toàn bộ đô thị.
 
 2.  **Xác nhận Giả thuyết 2 (Tính hiệu quả của TLF tại đô thị nén):** 
     Kết quả kiểm định tỷ số Likelihood (**LRT**) giữa SPL và TLF tại Singapore cho thấy tham số cắt cụt $\kappa$ có ý nghĩa thống kê ($p < 0.05$), xác nhận giới hạn địa lý (~50km) là một thực thể vật lý đang "bóp nghẹt" các chuyến đi dài. Tuy nhiên, đúng như giả thuyết, TLF không còn đạt hiệu quả thông tin cao nhất (BIC yếu) so với Lognormal hay Gamma vì độ phức tạp tham số của nó quá cao đối với một không gian bị nén chặt. Điều này chứng minh rằng tại các đô thị nén, các mô hình đơn giản hơn nhưng mô tả tốt vùng đỉnh (Habit mode) có giá trị thực tiễn cao hơn trong việc dự báo và hành vi di chuyển.
@@ -343,8 +332,27 @@ Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL/TLF*
 2. **Các đô thị nén và giới hạn vật lý:** Khác với các siêu đô thị lớn, giới hạn địa lý tại Singapore (~50km) đóng vai trò then chốt trong việc cắt cụt hành vi di chuyển xa. Điều này làm cho mô hình **Lognormal và Gamma** đạt hiệu quả thông tin cao hơn TLF và SPL trong việc mô tả thói quen lõi của người dân.
 
 
+
+
 ---
-## 7. References
+
+## 7. Appendix: Supplementary Validation Methods
+
+Nhằm tăng cường độ chính xác và tính khách quan cho các kết quả thực nghiệm, chúng tôi áp dụng thêm hai phương pháp kiểm định bổ sung:
+
+### 7.1. Spatial Cross-Validation (Kiểm tra chéo không gian)
+Để loại bỏ hoàn toàn ảnh hưởng của cỡ mẫu ($N$) trong tiêu chuẩn BIC và đánh giá tính bền vững (robustness) của các mô hình, chúng tôi thực hiện Validation không gian:
+- **Phân tách Block:** Sử dụng 40 groups địa lý làm các đơn vị block để đảm bảo tính độc lập.
+- **Train-Test Split:** Thực hiện 20 lượt ShuffleSplit chọn 30 groups (75%) để fit tham số và 10 groups còn lại (25%) để kiểm tra.
+- **Chỉ số:** Tính toán **Normalized Log-loss** trên tập test để đo khả năng dự báo của mô hình.
+
+### 7.2. Minimum Description Length (MDL) & Effective Complexity
+Để đảm bảo sự công bằng giữa các mô hình có cấu trúc hàm khác nhau (ví dụ: Lognormal vs TLF) và giải quyết hạn chế của BIC khi cỡ mẫu quá lớn, chúng tôi áp dụng nguyên lý MDL. MDL không chỉ phạt số lượng tham số $k$ mà còn xem xét "độ phức tạp hiệu dụng":
+$$MDL(\mathcal{M}) \approx -\ln \mathcal{L}(\hat{\theta}) + \frac{k}{2} \ln \mathcal{B}$$
+Trong đó $\mathcal{B}$ là số lượng bins của histogram khoảng cách. MDL ưu tiên các mô hình nén dữ liệu tốt nhất với cấu trúc hàm đơn giản và ổn định nhất.
+
+---
+## 8. References
 1. Brockmann, D. et al (2006). *Nature*. DOI: 10.1038/nature04292
 2. González, M. C. et al (2008). *Nature*. DOI: 10.1038/nature06958
 3. Song, C. et al (2010). *Science*. DOI: 10.1126/science.1177170
