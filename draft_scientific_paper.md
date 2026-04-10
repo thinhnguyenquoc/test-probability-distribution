@@ -416,6 +416,21 @@ Việc phân tích phần dư chuẩn hóa (Figure 10) bộc lộ các sai số 
 - **Sự phân hóa tại vùng đuôi (>25 km):** Cả **Lognormal (xanh dương)** và **Shifted Power-Law (đỏ)** đều cho thấy phần dư âm lớn, nghĩa là chúng dự báo số lượng chuyến đi xa cao hơn thực tế.
 - **Sức mạnh của Truncation:** Các mô hình có thành phần cắt hàm mũ như **Exponential (xám)**, **Gamma (xanh lá)** và **TLF (cam)** hội tụ về sát trục 0 hơn rất nhiều ở cự ly xa.
 
+### 4.8. Sự tiến hóa của các tham số theo quy mô không gian
+
+Bằng chứng thực nghiệm mạnh mẽ nhất cho tiến trình chuyển pha không chỉ nằm ở việc thay đổi mô hình thắng cuộc, mà còn nằm ở sự biến đổi có hệ thống của chính các tham số bên trong mô hình (Figure 11).
+
+![Parameter Evolution](parameter_evolution_plot.png)
+*Hình 11. Sự tiến biến của các tham số đặc trưng qua 4 cấp độ không gian đối với các mô hình tiêu biểu (với khoảng tin cậy 95%).*
+
+**Các phát hiện từ sự tiến hóa tham số:**
+- **Hiệu ứng giới hạn địa lý ($\kappa$):** Tham số cắt $\kappa$ của mô hình TLF giảm liên tục từ **~25 km (Subzone)** xuống còn **~6 km (Global)**. Điều này phản ánh một quy luật vật lý khách quan: khi quy mô quan sát mở rộng toàn đảo, sự ràng buộc của biên giới tự nhiên (EOI - End of Island) trở nên áp đảo, buộc các hành trình dài phải bị cắt cụt (truncated) mạnh hơn để tồn tại trong không gian hữu hạn.
+- **Sự trải rộng của hệ thống ($\beta$):** Chỉ số lũy thừa $\beta$ giảm mạnh từ **0.9** (dốc) xuống **0.1** (phẳng). Sự sụt giảm này chứng minh rằng ở quy mô vi mô, di chuyển cực kỳ tập trung vào các điểm sầm uất lân cận (proximity attraction), nhưng ở quy mô vĩ mô, cấu trúc di chuyển trở nên phân tán và mang tính hệ thống cao hơn.
+- **Vùng chuyển pha ($\alpha$):** Tham số hình thái $\alpha$ của Gamma đạt đỉnh tại quy mô **40 Groups**, củng cố nhận định đây là ngưỡng quy mô nơi sự cộng gộp thói quen cá nhân tạo ra cấu trúc dòng chảy rõ nét nhất trước khi bị hòa tan vào lực hấp dẫn toàn cầu.
+- **Sự ổn định của hành vi ($\sigma$):** Độ lệch chuẩn log ($\sigma$) của Lognormal giảm dần và hội tụ về mức 1.0. Điều này chỉ ra rằng mặc dù thói quen cá nhân có sự biến thiên lớn ở cấp độ vi mô, nhưng khi xét trên bình diện tổng thể, các hành vi này hội tụ về một trạng thái cân bằng thống kê ổn định.
+
+Sự biến đổi mượt mà và có hướng của các tham số này là minh chứng bác bỏ quan điểm về sự tồn tại của một bộ tham số "phổ quát" duy nhất, đồng thời khẳng định tính đúng đắn của cách tiếp cận phụ thuộc quy mô.
+
 Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có vẻ mâu thuẫn với xu hướng suy giảm ở các cấp độ trước, nhưng có thể giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
 
 Để minh chứng cho đặc tính "đuôi" của dữ liệu di chuyển toàn thành phố, chúng tôi thực hiện các biểu đồ trực quan hóa quan trọng sau:
