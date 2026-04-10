@@ -385,8 +385,8 @@ graph TD
     style Mechanism fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
-![Distribution Morphing](distribution_morphing.png)
-*Hình 8. **Distribution Morphing**: Bằng chứng trực quan cho Tiến trình Chuyển pha (Phase Transition). Phân phối biến đổi từ đỉnh nhọn thói quen (Lognormal) sang đuôi dài hệ thống (SPL) khi quy mô mở rộng.*
+![Distribution Morphing v2](distribution_morphing_v2.png)
+*Hình 8. **Distribution Morphing (V2)**: Bằng chứng trực quan thực nghiệm cho Tiến trình Chuyển pha. Biểu đồ cho thấy sự biến đổi của phân phối thực tế (histogram) và các đường khớp mô hình (LN, Gamma, SPL) khi quy mô mở rộng từ cá nhân (Subzone) đến hệ thống (Global).*
 
 ### 4.6. Kiểm chứng độ bền vững với Spatial Cross-Validation
 
