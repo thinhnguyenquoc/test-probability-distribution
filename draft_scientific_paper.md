@@ -116,7 +116,8 @@ Tham số của từng mô hình được ước lượng bằng phương pháp 
 
 $$\mathrm{NLL}(\theta) = -\sum_{b} h_b \ln(\hat{p}^{\text{model}}_b(\theta))$$
 
-trong đó $h_b$ là số lượng chuyến đi thực tế trong bin $b$ và $\hat{p}^{\text{model}}_b(\theta)$ là xác suất lý thuyết được chuẩn hóa từ mô hình tại bin đó. Quá trình tối ưu hóa được thực hiện bằng thuật toán **L-BFGS-B** (bổ sung Nelder-Mead khi cần thiết hội tụ) thông qua thư viện `scipy.optimize.minimize`.
+trong đó $h_b$ là số lượng chuyến đi thực tế trong bin $b$ và $\hat{p}^{\text{model}}_b(\theta)$ là xác suất lý thuyết được chuẩn hóa từ mô hình tại bin đó. Để tối ưu hóa chi phí tính toán cho hàng triệu chuyến đi, hàm likelihood được xấp xỉ bằng cách sử dụng tần suất histogram (histogram counts), tương đương với công thức multinomial likelihood (To reduce computational cost for millions of trips, likelihood is approximated using histogram counts, equivalent to a multinomial likelihood formulation). Quá trình tối ưu hóa được thực hiện bằng thuật toán **L-BFGS-B** (bổ sung Nelder-Mead khi cần thiết hội tụ) thông qua thư viện `scipy.optimize.minimize`.
+
 
 Cấu hình tối ưu hóa:
 - Thuật toán chính: L-BFGS-B (hỗ trợ ràng buộc biên)
@@ -315,7 +316,59 @@ Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh ch
 
 *Lưu ý: Tại Global (n=1), Exp và TLF hòa nhau về AIC/BIC (~39.10M). Tỉ lệ 0.5/0.5 phản ánh sự hòa.*
 
+```mermaid
+graph TD
+    %% Define Scales
+    subgraph Scales ["Scale Evolution"]
+    direction LR
+    Micro("<b>Micro</b><br/>(Subzones)") 
+    Inter("<b>Intermediate</b><br/>(Groups)")
+    Macro("<b>Macro</b><br/>(Districts)")
+    Global("<b>Global</b><br/>(City)")
+    
+    Micro --> Inter --> Macro --> Global
+    end
+
+    %% Define Models
+    subgraph Distribution ["Mobility Phase Transition"]
+    direction LR
+    M1["Lognormal"]
+    M2["Gamma"]
+    M3["Gamma / SPL"]
+    M4["Lognormal + SPL"]
+    
+    M1 --> M2 --> M3 --> M4
+    end
+
+    %% Define Mechanisms
+    subgraph Mechanism ["Mechanism"]
+    direction LR
+    K1["Individual<br/>habits"]
+    K2["Behavioral<br/>aggregation"]
+    K3["Urban<br/>structure"]
+    K4["Gravity<br/>constraints"]
+    
+    K1 --- K2 --- K3 --- K4
+    end
+
+    %% Align columns
+    Micro --- M1 --- K1
+    Inter --- M2 --- K2
+    Macro --- M3 --- K3
+    Global --- M4 --- K4
+    
+    style Distribution fill:#f9f,stroke:#333,stroke-width:2px
+    style Scales fill:#bbf,stroke:#333,stroke-width:2px
+    style Mechanism fill:#dfd,stroke:#333,stroke-width:2px
+```
+
+![Distribution Morphing](distribution_morphing.png)
+*Hình 7. **Distribution Morphing**: Sự tiến hóa của hàm mật độ xác suất (PDF) từ quy mô Micro đến Global. Hình ảnh cho thấy sự chuyển pha từ các thói quen cá nhân (Lognormal - đỉnh nhọn, plateau ngắn) sang quá trình cộng gộp (Gamma) và cuối cùng là cấu trúc hệ thống bị giới hạn bởi lực hấp dẫn đô thị (SPL/TLF - đuôi dài, suy giảm chậm).*
+
 **Quy luật Chuyển dịch (The Transition Path):**
+
+
+
 1. **Micro (LN dominates)**: Lognormal thắng vượt trội về thống kê (BIC 60%) với KS-stat thấp nhất tại 46.5% số vùng.
 2. **Intermediate (Gamma takes over)**: Gamma chiếm ưu tế rõ rệt (BIC 58.8%), LN sụt giảm xuống còn 29.4%.
 3. **Macro (Gamma / TLF Tie)**: Gamma và TLF hòa nhau về BIC (mỗi bên 40%). LN hoàn toàn biến mất (BIC 0%).
