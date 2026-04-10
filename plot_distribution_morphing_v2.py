@@ -67,7 +67,7 @@ def main():
         'SPL': (spl_pdf, [1.0, 2.5], [(0.1, 10), (0.1, 10)])
     }
     
-    colors = {'Lognormal': 'red', 'Gamma': 'green', 'SPL': 'blue'}
+    colors = {'Lognormal': '#1f77b4', 'Gamma': '#2ca02c', 'SPL': '#ff7f0e'}
     
     fig, axes = plt.subplots(1, 4, figsize=(24, 7))
     

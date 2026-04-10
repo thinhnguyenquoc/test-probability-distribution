@@ -111,36 +111,36 @@ def main():
     mu_data = [get_stats(i, 'Lognormal', 0) for i in range(4)]
     sigma_data = [get_stats(i, 'Lognormal', 1) for i in range(4)]
     
-    axes[0].errorbar(scales, [x[0] for x in mu_data], yerr=[x[1] for x in mu_data], fmt='-o', label='$\mu$ (mean-log)', color='blue', capsize=5)
-    axes[0].errorbar(scales, [x[0] for x in sigma_data], yerr=[x[1] for x in sigma_data], fmt='-o', label='$\sigma$ (sigma-log)', color='cyan', capsize=5)
+    axes[0].errorbar(scales, [x[0] for x in mu_data], yerr=[x[1] for x in mu_data], fmt='-o', label='$\mu$ (mean-log)', color='#1f77b4', capsize=5)
+    axes[0].errorbar(scales, [x[0] for x in sigma_data], yerr=[x[1] for x in sigma_data], fmt='-o', label='$\sigma$ (sigma-log)', color='#a6cee3', capsize=5)
     axes[0].set_title('Lognormal Parameter Evolution')
     axes[0].set_ylabel('Value (unitless)')
     axes[0].legend()
     
     # Panel 1: Gamma Alpha (Shape)
     alpha_data = [get_stats(i, 'Gamma', 0) for i in range(4)]
-    axes[1].errorbar(scales, [x[0] for x in alpha_data], yerr=[x[1] for x in alpha_data], fmt='-g^', label='$\\alpha$ (shape)', capsize=5)
+    axes[1].errorbar(scales, [x[0] for x in alpha_data], yerr=[x[1] for x in alpha_data], fmt='-g^', label='$\\alpha$ (shape)', color='#2ca02c', capsize=5)
     axes[1].set_title('Gamma Shape ($\\alpha$) Evolution')
     axes[1].set_ylabel('$\\alpha$ (unitless)')
     axes[1].legend()
     
     # Panel 2: TLF beta (Exponent)
     beta_data = [get_stats(i, 'TLF', 1) for i in range(4)]
-    axes[2].errorbar(scales, [x[0] for x in beta_data], yerr=[x[1] for x in beta_data], fmt='-rs', label='$\\beta$ (exponent)', capsize=5)
+    axes[2].errorbar(scales, [x[0] for x in beta_data], yerr=[x[1] for x in beta_data], fmt='-s', label='$\\beta$ (exponent)', color='#41b6c4', capsize=5)
     axes[2].set_title('TLF Exponent ($\\beta$) Evolution')
     axes[2].set_ylabel('$\\beta$ (unitless)')
     axes[2].legend()
     
     # Panel 3: TLF kappa (Truncation)
     kappa_data = [get_stats(i, 'TLF', 2) for i in range(4)]
-    axes[3].errorbar(scales, [x[0] for x in kappa_data], yerr=[x[1] for x in kappa_data], fmt='-o', color='orange', label='$\\kappa$ (truncation)', capsize=5)
+    axes[3].errorbar(scales, [x[0] for x in kappa_data], yerr=[x[1] for x in kappa_data], fmt='-o', color='#41b6c4', label='$\\kappa$ (truncation)', capsize=5)
     axes[3].set_title('TLF Truncation ($\\kappa$) Evolution')
     axes[3].set_ylabel('$\\kappa$ (km)')
     axes[3].legend()
 
     # Panel 4: TLF r0 (Shift)
     r0_data = [get_stats(i, 'TLF', 0) for i in range(4)]
-    axes[4].errorbar(scales, [x[0] for x in r0_data], yerr=[x[1] for x in r0_data], fmt='-mv', label='$r_0$ (shift)', capsize=5)
+    axes[4].errorbar(scales, [x[0] for x in r0_data], yerr=[x[1] for x in r0_data], fmt='-v', label='$r_0$ (shift)', color='#41b6c4', capsize=5)
     axes[4].set_title('TLF Shift ($r_0$) Evolution')
     axes[4].set_ylabel('$r_0$ (km)')
     axes[4].legend()

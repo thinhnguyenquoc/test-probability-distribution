@@ -82,13 +82,13 @@ metrics = {
 
 
 
-model_order = ['Lognormal', 'Exponential', 'Gamma', 'Shifted Power-Law', 'Truncated Lévy Flight']
+model_order = ['Lognormal', 'Gamma', 'Truncated Lévy Flight', 'Shifted Power-Law', 'Exponential']
 palette = {
-    'Lognormal':            '#4E79A7',
-    'Exponential':          '#F28E2B',
-    'Gamma':                '#59A14F',
-    'Shifted Power-Law':    '#E15759',
-    'Truncated Lévy Flight':'#B07AA1',
+    'Lognormal':            '#1f77b4', # Blue
+    'Gamma':                '#2ca02c', # Green
+    'Truncated Lévy Flight':'#41b6c4', # Teal
+    'Shifted Power-Law':    '#ff7f0e', # Orange
+    'Exponential':          '#d62728', # Red
 }
 
 dominance = {}

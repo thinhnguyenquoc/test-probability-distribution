@@ -66,11 +66,11 @@ def r2_score(y_true, y_pred):
 
 # Fitting loop
 models = {
-    'SPL': {'func': shift_power_law, 'p0': [y_prob[0], 1, 2], 'bounds': ([0, 1e-3, 0.1], [np.inf, 50, 10]), 'k': 3, 'color': '#1f77b4'},
-    'Lognormal': {'func': lognormal_dist, 'p0': [y_prob[0], np.log(np.mean(x_data)), 1], 'bounds': ([0, -10, 0.1], [np.inf, 10, 5]), 'k': 3, 'color': '#ff7f0e'},
-    'Exponential': {'func': exponential_dist, 'p0': [y_prob[0], 5], 'bounds': ([0, 0.1], [np.inf, 100]), 'k': 2, 'color': '#2ca02c'},
-    'Gamma': {'func': gamma_dist, 'p0': [y_prob[0], 2, 5], 'bounds': ([0, 0.1, 0.1], [np.inf, 20, 100]), 'k': 3, 'color': '#d62728'},
-    'TLF': {'func': tlf_dist, 'p0': [y_prob[0], 1, 2, 10], 'bounds': ([0, 1e-3, 0.1, 1], [np.inf, 50, 10, 500]), 'k': 4, 'color': '#9467bd'}
+    'Lognormal': {'func': lognormal_dist, 'p0': [y_prob[0], np.log(np.mean(x_data)), 1], 'bounds': ([0, -10, 0.1], [np.inf, 10, 5]), 'k': 3, 'color': '#1f77b4'}, # Blue
+    'Gamma': {'func': gamma_dist, 'p0': [y_prob[0], 2, 5], 'bounds': ([0, 0.1, 0.1], [np.inf, 20, 100]), 'k': 3, 'color': '#2ca02c'}, # Green
+    'TLF': {'func': tlf_dist, 'p0': [y_prob[0], 1, 2, 10], 'bounds': ([0, 1e-3, 0.1, 1], [np.inf, 50, 10, 500]), 'k': 4, 'color': '#41b6c4'}, # Teal
+    'SPL': {'func': shift_power_law, 'p0': [y_prob[0], 1, 2], 'bounds': ([0, 1e-3, 0.1], [np.inf, 50, 10]), 'k': 3, 'color': '#ff7f0e'}, # Orange
+    'Exponential': {'func': exponential_dist, 'p0': [y_prob[0], 5], 'bounds': ([0, 0.1], [np.inf, 100]), 'k': 2, 'color': '#d62728'} # Red
 }
 
 results = {}
@@ -114,15 +114,15 @@ ax2.legend(fontsize=10)
 ax2.grid(True, which="both", ls="-", alpha=0.2)
 
 # Specific Annotation for the Transition and Tail
-ax2.annotate('Heavier Tail Models (SPL, TLF)\nmatch longer distances', 
-             xy=(x_data[-2], results['SPL']['y_fit'][-2]), xytext=(x_data[-15], 1e-1),
-             arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
-             fontsize=11, bbox=dict(boxstyle="round", fc="white", alpha=0.9))
+ax2.annotate('Các mô hình Đuôi nặng (SPL, TLF)\nkhớp chính xác phần đuôi dữ liệu', 
+             xy=(x_data[-3], results['SPL']['y_fit'][-3]), xytext=(x_data[len(x_data)//2], 1e-1),
+             arrowprops=dict(facecolor='#1f77b4', shrink=0.05, width=1.5, headwidth=8, alpha=0.8),
+             fontsize=11, fontweight='bold', bbox=dict(boxstyle="round,pad=0.5", fc="white", ec="#1f77b4", alpha=0.9))
 
-ax2.annotate('Lognormal/Gamma drop fast', 
-             xy=(x_data[-8], results['Lognormal']['y_fit'][-8]), xytext=(x_data[-30], 1e-6),
-             arrowprops=dict(facecolor='red', shrink=0.05, width=1, headwidth=5),
-             fontsize=11, color='darkred', bbox=dict(boxstyle="round", fc="white", alpha=0.9))
+ax2.annotate('Lognormal và Gamma (màu đỏ)\nsuy giảm nhanh ở cự ly xa', 
+             xy=(x_data[-12], results['Gamma']['y_fit'][-12]), xytext=(x_data[len(x_data)//4], 1e-8),
+             arrowprops=dict(facecolor='#d62728', shrink=0.05, width=1.5, headwidth=8, alpha=0.8),
+             fontsize=11, fontweight='bold', color='#d62728', bbox=dict(boxstyle="round,pad=0.5", fc="white", ec="#d62728", alpha=0.9))
 
 plt.suptitle('Multi-model Distribution Analysis at Macro Scale (District Level)', fontsize=18, y=1.02, weight='bold')
 plt.tight_layout()
