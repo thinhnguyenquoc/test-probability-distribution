@@ -81,49 +81,92 @@ def main():
     df['global_id'] = 1
     scale_data.append(fit_scale(df, 'global_id', models_config))
     
-    # Visualization
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    # Global Bootstrap to get CI for the 4th point
+    print("Running Global bootstrap for CIs...")
+    global_params = {m: [] for m in models_config}
+    df['global_id'] = 1
+    # We sample 80% of data 10 times to get a "Global" CI
+    for _ in range(10):
+        df_sample = df.sample(frac=0.8, replace=True)
+        g_fit = fit_scale(df_sample, 'global_id', models_config)
+        for m in models_config:
+            if g_fit[m]: global_params[m].append(g_fit[m][0])
+    
+    # Visualization - 3x2 layout (5 panels + 1 empty/summary)
+    fig, axes = plt.subplots(3, 2, figsize=(14, 15))
     axes = axes.flatten()
     
+    def get_stats(scale_idx, model_name, param_idx):
+        if scale_idx == 3: # Global
+            data = [p[param_idx] for p in global_params[model_name]]
+        else:
+            data = [p[param_idx] for p in scale_data[scale_idx][model_name]]
+        
+        if not data: return 0, 0
+        mean = np.mean(data)
+        sem = np.std(data) / np.sqrt(len(data))
+        return mean, 1.96 * sem
+
     # Panel 0: Lognormal Mu and Sigma
-    mu_means = [np.mean([p[0] for p in s['Lognormal']]) for s in scale_data]
-    mu_std = [np.std([p[0] for p in s['Lognormal']]) / np.sqrt(max(len(s['Lognormal']), 1)) for s in scale_data]
-    sigma_means = [np.mean([p[1] for p in s['Lognormal']]) for s in scale_data]
-    sigma_std = [np.std([p[1] for p in s['Lognormal']]) / np.sqrt(max(len(s['Lognormal']), 1)) for s in scale_data]
+    mu_data = [get_stats(i, 'Lognormal', 0) for i in range(4)]
+    sigma_data = [get_stats(i, 'Lognormal', 1) for i in range(4)]
     
-    axes[0].errorbar(scales, mu_means, yerr=1.96*np.array(mu_std), fmt='-o', label='$\mu$ (mean-log)', color='blue')
-    axes[0].errorbar(scales, sigma_means, yerr=1.96*np.array(sigma_std), fmt='-o', label='$\sigma$ (sigma-log)', color='cyan')
+    axes[0].errorbar(scales, [x[0] for x in mu_data], yerr=[x[1] for x in mu_data], fmt='-o', label='$\mu$ (mean-log)', color='blue', capsize=5)
+    axes[0].errorbar(scales, [x[0] for x in sigma_data], yerr=[x[1] for x in sigma_data], fmt='-o', label='$\sigma$ (sigma-log)', color='cyan', capsize=5)
     axes[0].set_title('Lognormal Parameter Evolution')
-    axes[0].set_ylabel('Parameter Value')
+    axes[0].set_ylabel('Value (unitless)')
     axes[0].legend()
     
     # Panel 1: Gamma Alpha (Shape)
-    alpha_means = [np.mean([p[0] for p in s['Gamma']]) for s in scale_data]
-    alpha_std = [np.std([p[0] for p in s['Gamma']]) / np.sqrt(max(len(s['Gamma']), 1)) for s in scale_data]
-    axes[1].errorbar(scales, alpha_means, yerr=1.96*np.array(alpha_std), fmt='-o', color='green')
+    alpha_data = [get_stats(i, 'Gamma', 0) for i in range(4)]
+    axes[1].errorbar(scales, [x[0] for x in alpha_data], yerr=[x[1] for x in alpha_data], fmt='-g^', label='$\\alpha$ (shape)', capsize=5)
     axes[1].set_title('Gamma Shape ($\\alpha$) Evolution')
-    axes[1].set_ylabel('$\\alpha$')
+    axes[1].set_ylabel('$\\alpha$ (unitless)')
+    axes[1].legend()
     
     # Panel 2: TLF beta (Exponent)
-    beta_means = [np.mean([p[1] for p in s['TLF']]) for s in scale_data]
-    beta_std = [np.std([p[1] for p in s['TLF']]) / np.sqrt(max(len(s['TLF']), 1)) for s in scale_data]
-    axes[2].errorbar(scales, beta_means, yerr=1.96*np.array(beta_std), fmt='-o', color='red')
+    beta_data = [get_stats(i, 'TLF', 1) for i in range(4)]
+    axes[2].errorbar(scales, [x[0] for x in beta_data], yerr=[x[1] for x in beta_data], fmt='-rs', label='$\\beta$ (exponent)', capsize=5)
     axes[2].set_title('TLF Exponent ($\\beta$) Evolution')
-    axes[2].set_ylabel('$\\beta$')
+    axes[2].set_ylabel('$\\beta$ (unitless)')
+    axes[2].legend()
     
     # Panel 3: TLF kappa (Truncation)
-    kappa_means = [np.mean([p[2] for p in s['TLF']]) for s in scale_data]
-    kappa_std = [np.std([p[2] for p in s['TLF']]) / np.sqrt(max(len(s['TLF']), 1)) for s in scale_data]
-    axes[3].errorbar(scales, kappa_means, yerr=1.96*np.array(kappa_std), fmt='-o', color='orange')
+    kappa_data = [get_stats(i, 'TLF', 2) for i in range(4)]
+    axes[3].errorbar(scales, [x[0] for x in kappa_data], yerr=[x[1] for x in kappa_data], fmt='-o', color='orange', label='$\\kappa$ (truncation)', capsize=5)
     axes[3].set_title('TLF Truncation ($\\kappa$) Evolution')
     axes[3].set_ylabel('$\\kappa$ (km)')
+    axes[3].legend()
+
+    # Panel 4: TLF r0 (Shift)
+    r0_data = [get_stats(i, 'TLF', 0) for i in range(4)]
+    axes[4].errorbar(scales, [x[0] for x in r0_data], yerr=[x[1] for x in r0_data], fmt='-mv', label='$r_0$ (shift)', capsize=5)
+    axes[4].set_title('TLF Shift ($r_0$) Evolution')
+    axes[4].set_ylabel('$r_0$ (km)')
+    axes[4].legend()
+
+    # Panel 5: Summary of Transition (Text Panel)
+    axes[5].axis('off')
+    summary_text = (
+        "Summary of Phase Transition:\n\n"
+        "1. Boundary Effect: $\\kappa \downarrow$ (25km $\\rightarrow$ 6km)\n"
+        "   Reflects stronger island-limit constraints.\n\n"
+        "2. System Spread: $\\beta \downarrow$ (0.9 $\\rightarrow$ 0.1)\n"
+        "   Transition from local habits to global patterns.\n\n"
+        "3. Aggregation Peak: $\\alpha$ peaks at 40 Groups.\n"
+        "   Intermediate scale maximum behavioral consolidation.\n\n"
+        "4. Habit Stabilization: $\\sigma \searrow$ 1.0\n"
+        "   Decrease in behavioral variance at large scales."
+    )
+    axes[5].text(0.1, 0.5, summary_text, fontsize=12, verticalalignment='center', 
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
     
-    for ax in axes:
+    for ax in axes[:5]:
         ax.grid(True, linestyle='--', alpha=0.6)
     
     plt.tight_layout()
     plt.savefig('parameter_evolution_plot.png', dpi=300)
-    print("Saved plot to parameter_evolution_plot.png")
+    print("Saved enhanced plot to parameter_evolution_plot.png")
 
 if __name__ == "__main__":
     main()
