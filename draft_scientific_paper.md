@@ -312,6 +312,21 @@ Tại cấp độ District, thực tế là một **cuộc tranh giành ba bên*
 
 Tại thang đo toàn thành phố, **Exponential và TLF cùng hòa nhau** về AIC/BIC (~39.10M) — đây là kết quả bất ngờ khi TLF, vốn bị coi là yếu ở quy mô nhỏ, lại phục hồi thành tích ở quy mô lớn nhất. **Lognormal** vẫn duy trì $R^2$ cao nhất (0.9286) nhưng BIC cao hơn (39.23M) và KS tệ nhất (0.1291), phản ánh nhất quán xu hướng xuyên suốt: LN khớp phần thân nhưng thất bại ở phần đuôi. **SPL** bất ngờ có KS tốt nhất (0.0697) nhưng BIC tệ nhất trong nhóm dẫn đầu (39.34M). **Gamma** là mô hình tệ nhất ở Global với BIC 45.06M và KS 0.2460.
 
+Để minh chứng cho đặc tính "đuôi" của dữ liệu di chuyển toàn thành phố, chúng tôi thực hiện các biểu đồ trực quan hóa quan trọng sau:
+
+
+![Phân bố khoảng cách (Histogram)](distance_histogram.png)
+![Biểu đồ Log-Log với các đường khớp mô hình](distance_loglog.png)
+![Hàm phân phối tích lũy bổ sung (CCDF)](distance_ccdf.png)
+
+*Hình 6. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram tuyến tính, (B) Log-Log plot so sánh Exponential vs Power-Law, và (C) CCDF phân tích đặc tính heavy-tail.*
+
+**Nhận xét từ trực quan hóa:**
+- **Histogram:** Cho thấy sự sụt giảm nhanh chóng của các chuyến đi ngắn, nhưng vẫn duy trì các chuyến đi dài ở khoảng cách >20 km.
+- **Log-Log Plot:** Đường khớp **Exponential** (màu đỏ) cho thấy độ dốc khá gắt, trong khi **Shifted Power-Law** (màu xanh) khớp tốt hơn ở phần đuôi dữ liệu. Điều này giải thích tại sao ở quy mô này, các mô hình hệ thống bắt đầu vượt lên.
+- **CCDF:** Biểu đồ CCDF trên thang log-log xác nhận sự tồn tại của cấu trúc heavy-tail, tuy nhiên bị giới hạn bởi diện tích hòn đảo (~50 km), minh chứng cho sự cần thiết của thành phần "Truncated" trong các mô hình Lévy Flight.
+
+
 ### 4.5. Tổng hợp So sánh: Sự chuyển dịch theo 4 quy mô không gian
 
 Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh chuyển dịch liền mạch từ cá nhân đến hệ thống.
@@ -339,8 +354,6 @@ Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh ch
 ## 5. Discussion
 
 ### 5.1. Đánh giá các Giả thuyết
-
-5.1. Đánh giá các Giả thuyết
 
 Dựa trên bằng chứng thực nghiệm từ 303 subzones qua 4 cấp độ quy mô không gian (Tables 1–5), chúng tôi đánh giá lại hai giả thuyết đã đặt ra ở Mục 2.2.
 
@@ -388,10 +401,7 @@ Giả định ban đầu cho rằng giới hạn địa lý (~50 km) của Singa
 - Khi dữ liệu tăng lên hàng triệu chuyến đi (District, Global), 4 tham số được ước lượng chính xác hơn và hình phạt BIC trở nên tương đối nhỏ. Lúc này, tham số truncation $\kappa$ thực sự phản ánh giới hạn ~50 km của Singapore, giúp TLF cạnh tranh ngang bằng Exponential.
 
 **Kết luận điều chỉnh:** Giả định 2 đúng ở quy mô vi mô và trung gian, nhưng sai ở quy mô vĩ mô và toàn thành phố. Phát biểu chính xác hơn: *"Tại đô thị nén, TLF mất tính phổ quát xuyên quy mô — nó chỉ phát huy khi khối lượng dữ liệu đủ lớn để bộc lộ đồng thời cả cấu trúc heavy-tail lẫn truncation."*
- kê (BIC 28% mỗi bên); SPL dẫn KS (33%).
-2. **Intermediate (Gamma dominates, SPL collapses)**: Gamma thống trị rõ rệt (AIC/BIC/LLH 38%). SPL sụt giảm đột ngột từ 28% → 9% (BIC) do mất hiệu quả ở scale trung gian.
-3. **Macro (Exp ≈ SPL; TLF phục hồi)**: Exp và SPL **hòa nhau** (AIC/BIC 40% mỗi bên); TLF bất ngờ thắng LLH tại 40% quận; SPL thắng KS (60%).
-4. **Global (Exp = TLF)**: Exp và TLF **hòa nhau** về AIC/BIC; SPL có KS tốt nhất; LN có $R^2$ tốt nhất nhưng thông tin kém.
+
 
 
 
