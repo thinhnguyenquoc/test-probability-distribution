@@ -79,14 +79,73 @@ Tại các đô thị nén (Compact City) như Singapore, các giả thuyết đ
 
 ## 3. Methodology
 
-Quá trình tham số hóa sử dụng thuật toán *Levenberg-Marquardt* để so sánh 5 mô hình: Lognormal, Shifted Power Law, Truncated Lévy Flight, Gamma, Exponential.
+### 3.1. Quy trình Fitting Phân phối (Model Fitting Pipeline)
 
-- **BIC (Bayesian Information Criterion)**: Cân bằng độ fit và độ phức tạp mô hình. Mô hình có BIC thấp hơn được ưu tiên. Chỉ số **BIC Winner (%)** đo tỷ lệ số vùng mà một mô hình đạt BIC thấp nhất.
-- **AIC (Akaike Information Criterion)**: Tương tự BIC nhưng không phụ thuộc vào cỡ mẫu, dùng bổ sung để kiểm tra tính nhất quán.
-- **$R^2$**: Tỷ lệ phương sai giải thích
-- **KS-statistic**: Kiểm định Kolmogorov-Smirnov
+#### 3.1.1. Dữ liệu đầu vào và Tiền xử lý
 
-**Lưu ý về tập dữ liệu:** Mặc dù hệ thống phân vùng của Singapore bao gồm **323 subzones**, nghiên cứu này chỉ tập trung phân tích trên **303 subzones** có dữ liệu di chuyển thực tế. 20 subzones còn lại (bao gồm các đảo các vùng đệm chưa quy hoạch dân cư) không ghi nhận chuyến đi đáng kể trong tập dữ liệu Ground Truth đa nguồn, do đó được loại bỏ để đảm bảo tính nhất quán của các ước lượng thống kê.
+Dữ liệu đầu vào là tập hợp các chuyến đi giữa các cặp subzone $(i, j)$, bao gồm số lượng chuyến đi $n_{ij}$ và khoảng cách Euclidean $r_{ij}$ (km). Với mỗi đơn vị không gian (subzone / group / district / city-wide), quá trình tiền xử lý bao gồm:
+
+1. **Lọc dữ liệu:** Chỉ giữ các đơn vị có tổng chuyến đi $N = \sum_j n_{ij} \geq 100$ và ít nhất 5 cặp OD hợp lệ để đảm bảo ước lượng thống kê đáng tin cậy.
+2. **Rời rạc hóa (Histogram binning):** Tạo histogram khoảng cách với số bins $B = \min(30, |\text{unique}(r)|)$ trên khoảng $[0, r_{\max}]$. Mỗi bin $b$ có tâm $\bar{r}_b$ và tần suất $h_b$ (tổng chuyến đi trong bin).
+3. **Chuẩn hóa thành xác suất thực nghiệm:** $\hat{p}_b = h_b / N$, trong đó $N$ là tổng chuyến đi của đơn vị.
+4. **Lọc bins rỗng:** Chỉ giữ các bins có $h_b > 0$. Yêu cầu tối thiểu 4 bins hợp lệ.
+
+#### 3.1.2. Các mô hình phân phối ứng viên
+
+Năm mô hình phân phối được so sánh, với số tham số $k$ tương ứng:
+
+| Mô hình | Công thức $P(r)$ | $k$ | Tham số |
+| :--- | :--- | :---: | :--- |
+| **Exponential** | $C \cdot e^{-r/\lambda}$ | 2 | $C, \lambda$ |
+| **Lognormal** | $\frac{C}{r \sigma \sqrt{2\pi}} \exp\!\left[-\frac{(\ln r - \mu)^2}{2\sigma^2}\right]$ | 3 | $C, \mu, \sigma$ |
+| **Gamma** | $C \cdot r^{\alpha-1} e^{-r/\lambda}$ | 3 | $C, \alpha, \lambda$ |
+| **Shifted Power-Law** | $C \cdot (r + r_0)^{-\beta}$ | 3 | $C, r_0, \beta$ |
+| **Truncated Lévy Flight** | $C \cdot (r + r_0)^{-\beta} e^{-r/\kappa}$ | 4 | $C, r_0, \beta, \kappa$ |
+
+#### 3.1.3. Thuật toán ước lượng tham số
+
+Tham số của từng mô hình được ước lượng bằng phương pháp **Nonlinear Least Squares (NLS)** với thuật toán tối ưu **Levenberg-Marquardt**, triển khai qua hàm `scipy.optimize.curve_fit` (Python). Thuật toán tối thiểu hóa tổng bình phương sai số:
+
+$$\hat{\theta} = \arg\min_{\theta} \sum_{b} \left[\hat{p}_b - P(\bar{r}_b; \theta)\right]^2$$
+
+Cấu hình fitting:
+- Số vòng lặp tối đa: `maxfev = 15,000`
+- Ràng buộc tham số: tất cả tham số $> 0$; $\beta \leq 15$ để tránh đuôi phân kỳ; $\alpha \leq 20$ cho Gamma
+- Giá trị khởi tạo: $p_0$ được chọn dựa trên đặc tính của từng mô hình (ví dụ: $\beta_0 = 2$, $\sigma_0 = 1$)
+
+#### 3.1.4. Chuẩn hóa và Tính chỉ số Goodness-of-Fit
+
+Sau khi ước lượng tham số $\hat{\theta}$, xác suất lý thuyết thô $\tilde{p}_b = P(\bar{r}_b; \hat{\theta})$ được chuẩn hóa thành PMF rời rạc:
+
+$$\hat{p}^{\text{model}}_b = \frac{\tilde{p}_b}{\sum_{b'} \tilde{p}_{b'}}$$
+
+Bốn chỉ số đánh giá được tính toán:
+
+**(a) Hệ số xác định $R^2$** — đo độ khớp hình dáng:
+$$R^2 = 1 - \frac{\sum_b (\hat{p}_b - \tilde{p}_b)^2}{\sum_b (\hat{p}_b - \bar{p})^2}$$
+
+**(b) Log-Likelihood (LLH)** — đo tính hợp lý của mô hình:
+$$\mathrm{LLH} = \sum_b h_b \cdot \ln(\hat{p}^{\text{model}}_b)$$
+
+**(c) AIC và BIC** — đo hiệu quả thông tin có phạt độ phức tạp:
+$$\mathrm{AIC} = 2k - 2\,\mathrm{LLH}$$
+$$\mathrm{BIC} = k \ln N - 2\,\mathrm{LLH}$$
+trong đó $N$ là tổng số chuyến đi của đơn vị không gian, $k$ là số tham số mô hình.
+
+**(d) KS-statistic** — đo sai lệch tích lũy tối đa giữa CDF thực nghiệm và lý thuyết:
+$$D_{\mathrm{KS}} = \max_b \left|\sum_{b'=1}^{b} \hat{p}_{b'} - \sum_{b'=1}^{b} \hat{p}^{\text{model}}_{b'}\right|$$
+
+#### 3.1.5. Tiêu chí lựa chọn mô hình
+
+Với mỗi đơn vị không gian, mô hình tốt nhất được xác định theo từng tiêu chí:
+- **AIC/BIC**: mô hình có giá trị **thấp nhất** được chọn.
+- **LLH**: mô hình có giá trị **cao nhất** (ít âm nhất) được chọn.
+- **$R^2$**: mô hình có giá trị **cao nhất** được chọn.
+- **KS-stat**: mô hình có giá trị **thấp nhất** được chọn.
+
+Chỉ số **BIC Winner (%)** được định nghĩa là tỷ lệ phần trăm số đơn vị không gian mà một mô hình đạt BIC thấp nhất, dùng để so sánh ưu thế tổng hợp qua nhiều quy mô. Ngoài ra, phân tích **Đồng thuận (Consensus)** xác định mô hình thắng theo nhiều tiêu chí nhất tại mỗi đơn vị để có cái nhìn tổng hợp đa chiều.
+
+**Lưu ý về tập dữ liệu:** Mặc dù hệ thống phân vùng của Singapore bao gồm **323 subzones**, nghiên cứu này chỉ tập trung phân tích trên **303 subzones** có dữ liệu di chuyển thực tế. 20 subzones còn lại (bao gồm các đảo và các vùng đệm chưa quy hoạch dân cư) không ghi nhận chuyến đi đáng kể trong tập dữ liệu, do đó được loại bỏ để đảm bảo tính nhất quán của các ước lượng thống kê.
 
 
 ### 3.2. Phân vùng cấp độ Trung gian (Intermediate-scale: 40 Groups)
