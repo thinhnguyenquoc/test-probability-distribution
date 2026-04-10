@@ -266,23 +266,6 @@ Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
 
 ### 4.3. Khảo sát tại Cấp Vĩ mô - District (Macro-scale)
 
-
-**Table 3b.** Tỉ lệ số quận (5 Districts) mà mỗi mô hình chiếm ưu thế theo từng chỉ số.
-
-| Model | BIC (n/%) | KS (n/%) | AD (n/%) | LLH (n/%) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Lognormal** | 0 (0.0%) | 1 (20.0%) | **4 (80.0%)** | 0 (0.0%) |
-| **Exponential** | 1 (20.0%) | 1 (20.0%) | 0 (0.0%) | 0 (0.0%) |
-| **Gamma** | **2 (40.0%)** | 0 (0.0%) | 1 (20.0%) | **3 (60.0%)** |
-| **Shifted Power-Law** | 0 (0.0%) | **2 (40.0%)** | 0 (0.0%) | 0 (0.0%) |
-| **Trun. Lévy Flight** | **2 (40.0%)** | 1 (20.0%) | 0 (0.0%) | 2 (40.0%) |
-
-
-
-![District Dominance](district_dominance_by_metric.png)
-*Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô vĩ mô (5 Districts).*
-
-
 Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc cạnh tranh quyết liệt giữa các mô hình (Table 3b).
 
 **Table 3b.** Ưu thế mô hình tại Quy mô Vĩ mô (5 Districts).
@@ -309,38 +292,8 @@ Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc 
 | **Gamma vs LN**     | Vuong     | $V < -22.0$             | Gamma is significantly better |
 | **TLF vs LN**       | Vuong     | $V < -31.0$             | TLF is significantly better   |
 
-
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
 *Hình 6. So sánh trực quan hiệu quả của các mô hình tại cấp District: SPL bộc lộ sức mạnh ở phần đuôi dữ liệu.*
-
-### 4.6. Kiểm chứng độ bền vững với Spatial Cross-Validation
-
-Kết quả kiểm tra chéo trên 40 block địa lý (Table 6) cung cấp một cái nhìn khách quan về khả năng tổng quát hóa của các mô hình mà không phụ thuộc vào các hình phạt tham số của AIC/BIC.
-
-**Table 6.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
-
-| Model              | Win Rate (%) | Predictive Preference |
-|--------------------|:------------:|:----------------------|
-| **Shifted Power-Law** | **38.4%**    | Tail Generalization   |
-| **Lognormal**      | **35.1%**    | Body/Habit Capture    |
-| Gamma              | 12.1%        | Aggregation Proxy     |
-| Exponential        | 7.3%         | -                     |
-| Trun. Lévy Flight  | 7.2%         | -                     |
-
-**Nhận xét:** Khi sử dụng Log-loss làm thước đo, **Lognormal và SPL chiếm ưu thế áp đảo (tổng cộng ~74%)** tại quy mô Micro. Mặc dù SPL có lợi thế nhẹ về khả năng dự báo các chuyến đi hiếm gặp (đuôi dài) trên dữ liệu mới, Lognormal vẫn giữ vị thế là mô hình phản ánh thói quen di chuyển lặp đi lặp lại.
-
-### 4.7. Phân tích phần dư cục bộ và Sai số hình thái
-
-Mặc dù các chỉ số tích lũy (KS, AD) cung cấp cái nhìn tổng thể, việc phân tích phần dư chuẩn hóa (Figure 10) bộc lộ các sai số hệ thống của mô hình theo từng dải khoảng cách.
-
-![Phân tích phần dư cục bộ](residual_analysis_plot.png)
-*Hình 10. Phân tích phần dư chuẩn hóa (Standardized Residuals) của các mô hình tại quy mô Global.*
-
-
-**Các quan sát chính từ Figure 10:**
-- **Sự hụt hẫng cự ly ngắn (0-5 km):** Tất cả các mô hình đều gặp khó khăn trong việc khớp các chuyến đi cực ngắn, phản ánh tính rời rạc của dữ liệu lưới (grid) và sự phức tạp của hành vi đi bộ/kết nối vi mô.
-- **Sự đánh giá cao quá mức ở phần đuôi (>25 km):** Cả Lognormal và SPL đều cho thấy phần nợ âm (negative residuals) lớn ở cự ly xa. Điều này có nghĩa là các mô hình này dự báo số lượng chuyến đi xa cao hơn thực tế, một hệ quả của việc không tính đến giới hạn địa đạo (boundary effect) của Singapore.
-- **Ưu thế của Gamma:** Mô hình Gamma (màu xanh lá) duy trì đường phần dư tiệm cận 0 tốt hơn SPL ở vùng đuôi, củng cố luận điểm của chúng tôi về sự gộp hành vi tạo ra các đuôi có tính chất hàm mũ (exponentially truncated) thay vì lũy thừa thuần túy.
 
 ### 4.4. Khảo sát tại Cấp Toàn thành phố - Global (City-wide)
 
@@ -356,7 +309,98 @@ Mặc dù các chỉ số tích lũy (KS, AD) cung cấp cái nhìn tổng thể
 | **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | +0.24M | 0.1133 | 11.02M |
 | **Exponential** | 2 | -19.53M | 39.06M | +0.24M | 0.1134 | 10.92M |
 
+Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
 
+![Phân bố khoảng cách (Histogram)](distance_histogram.png)
+![Biểu đồ Log-Log với các đường khớp mô hình](distance_loglog.png)
+![Hàm phân phối tích lũy bổ sung (CCDF)](distance_ccdf.png)
+*Hình 7. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram, (B) Log-Log Plot, và (C) CCDF.*
+
+### 4.5. Tổng hợp So sánh: Sự chuyển dịch theo 4 quy mô không gian
+
+Việc khảo sát qua 4 nấc thang không gian cho thấy một bức tranh chuyển dịch liền mạch từ cá nhân đến hệ thống.
+
+**Table 5.** Sự chuyển dịch ưu thế của mô hình (BIC Winner %) qua 4 quy mô không gian.
+
+| Distribution              | Subzone (303) | 40 Groups (34) | District (5) | Global (1)  |
+|---------------------------|:-------------:|:--------------:|:------------:|:-----------:|
+| **Lognormal**             | **59.7%**     | 29.4%          | 0.0%         | **100%**    |
+| **Gamma**                 | 34.7%         | **58.8%**      | **40.0%**    | 0.0%        |
+| **Shifted Power-Law**     | 3.0%          | 2.9%           | 0.0%         | 0.0%        |
+| **Exponential**           | 2.3%          | 5.9%           | 20.0%        | 0.0%        |
+| **Trun. Lévy Flight**     | 0.3%          | 2.9%           | **40.0%**    | 0.0%        |
+
+*Lưu ý: Tại quy mô Global (n=1), sự lên ngôi của Lognormal phản ánh sự tập trung của thói quen tại vùng lõi dân cư, trong khi các mô hình hệ thống (SPL/TLF) mô tả tốt hình thái lan tỏa (KS-stat).*
+
+```mermaid
+graph TD
+    %% Define Scales
+    subgraph Scales ["Scale Evolution"]
+    direction LR
+    Micro("<b>Micro</b><br/>(Subzones)") 
+    Inter("<b>Intermediate</b><br/>(Groups)")
+    Macro("<b>Macro</b><br/>(Districts)")
+    Global("<b>Global</b><br/>(City)")
+    Micro --> Inter --> Macro --> Global
+    end
+    %% Define Models
+    subgraph Distribution ["Mobility Phase Transition"]
+    direction LR
+    M1["Lognormal"]
+    M2["Gamma"]
+    M3["Gamma / SPL"]
+    M4["Lognormal + SPL"]
+    M1 --> M2 --> M3 --> M4
+    end
+    %% Define Mechanisms
+    subgraph Mechanism ["Mechanism"]
+    direction LR
+    K1["Individual<br/>habits"]
+    K2["Behavioral<br/>aggregation"]
+    K3["Urban<br/>structure"]
+    K4["Gravity<br/>constraints"]
+    K1 --- K2 --- K3 --- K4
+    end
+    %% Align columns
+    Micro --- M1 --- K1
+    Inter --- M2 --- K2
+    Macro --- M3 --- K3
+    Global --- M4 --- K4
+    style Distribution fill:#f9f,stroke:#333,stroke-width:2px
+    style Scales fill:#bbf,stroke:#333,stroke-width:2px
+    style Mechanism fill:#dfd,stroke:#333,stroke-width:2px
+```
+
+![Distribution Morphing](distribution_morphing.png)
+*Hình 8. **Distribution Morphing**: Bằng chứng trực quan cho Tiến trình Chuyển pha (Phase Transition). Phân phối biến đổi từ đỉnh nhọn thói quen (Lognormal) sang đuôi dài hệ thống (SPL) khi quy mô mở rộng.*
+
+### 4.6. Kiểm chứng độ bền vững với Spatial Cross-Validation
+
+Kết quả kiểm tra chéo trên 40 block địa lý trang bị cho mô hình khả năng tổng quát hóa mà không phụ thuộc vào BIC phụ thuộc cỡ mẫu.
+
+**Table 6.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
+
+| Model              | Win Rate (%) | Predictive Preference |
+|--------------------|:------------:|:----------------------|
+| **Shifted Power-Law** | **38.4%**    | Tail Generalization   |
+| **Lognormal**      | **35.1%**    | Body/Habit Capture    |
+| Gamma              | 12.1%        | Aggregation Proxy     |
+| Exponential        | 7.3%         | -                     |
+| Trun. Lévy Flight  | 7.2%         | -                     |
+
+**Nhận xét:** Tại quy mô Micro, Lognormal và SPL chiếm ưu thế áp đảo (~74%). Điều này củng cố luận điểm: tại quy mô cá thể, di chuyển là kết quả của sự tối ưu hóa hành vi thay vì các quy luật ngẫu nhiên đơn giản.
+
+### 4.7. Phân tích phần dư cục bộ và Sai số hình thái
+
+Việc phân tích phần dư chuẩn hóa (Figure 10) bộc lộ các sai số hệ thống của mô hình theo dải khoảng cách khi so sánh toàn bộ 5 mô hình ứng viên.
+
+![Phân tích phần dư cục bộ](residual_analysis_plot.png)
+*Hình 10. Phân tích phần dư chuẩn hóa (Standardized Residuals) của cả 5 mô hình ứng viên tại quy mô Global.*
+
+**Các quan sát chính từ Figure 10:**
+- **Sự hụt hẫng cự ly ngắn (0-5 km):** Tất cả các mô hình đều gặp khó khăn trong việc khớp các chuyến đi cực ngắn.
+- **Sự phân hóa tại vùng đuôi (>25 km):** Cả **Lognormal (xanh dương)** và **Shifted Power-Law (đỏ)** đều cho thấy phần dư âm lớn, nghĩa là chúng dự báo số lượng chuyến đi xa cao hơn thực tế.
+- **Sức mạnh của Truncation:** Các mô hình có thành phần cắt hàm mũ như **Exponential (xám)**, **Gamma (xanh lá)** và **TLF (cam)** hội tụ về sát trục 0 hơn rất nhiều ở cự ly xa.
 
 Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có vẻ mâu thuẫn với xu hướng suy giảm ở các cấp độ trước, nhưng có thể giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
 
