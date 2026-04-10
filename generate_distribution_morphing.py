@@ -26,37 +26,39 @@ def generate_morphing():
     
     x = np.linspace(0.1, 40, 1000)
     
-    fig, axes = plt.subplots(1, 4, figsize=(24, 6), sharey=True)
+    fig, axes = plt.subplots(1, 4, figsize=(24, 7), sharey=True)
+    fig.suptitle("Human Mobility: From Individual Habits to Urban Gravity\n(A Scale-Dependent Phase Transition)", fontsize=22, weight='bold', y=1.05)
     
-    # 1. Micro Scale (Lognormal)
+    # 1. Micro Scale (Habits)
+
     mu, sigma = 1.0, 0.7
     y1 = lognormal_pdf(x, mu, sigma)
     axes[0].plot(x, y1, 'r-', lw=3, label='Lognormal (Best)')
-    axes[0].set_title("1. Micro (Subzones)\nDominant: Lognormal", fontsize=16, weight='bold')
+    axes[0].set_title("1. Micro (Habits)\nDominant: Lognormal", fontsize=16, weight='bold')
     axes[0].fill_between(x, y1, color='red', alpha=0.1)
     
-    # 2. Intermediate Scale (Gamma)
+    # 2. Intermediate Scale (Aggregation)
     alpha, lam = 1.5, 3.0
     y2 = (x**(alpha-1) * np.exp(-x/lam))
     y2 /= np.trapz(y2, x)
     axes[1].plot(x, y2, 'orange', lw=3, label='Gamma (Best)')
-    axes[1].set_title("2. Intermediate (Groups)\nDominant: Gamma", fontsize=16, weight='bold')
+    axes[1].set_title("2. Interm. (Aggregation)\nDominant: Gamma", fontsize=16, weight='bold')
     axes[1].fill_between(x, y2, color='orange', alpha=0.1)
     
-    # 3. Macro Scale (Exponential/Gamma transition)
+    # 3. Macro Scale (System Structure)
     lam_exp = 5.0
     y3 = np.exp(-x/lam_exp)
     y3 /= np.trapz(y3, x)
     axes[2].plot(x, y3, 'green', lw=3, label='Exponential/Gamma')
-    axes[2].set_title("3. Macro (Districts)\nDominant: Gamma/TLF", fontsize=16, weight='bold')
+    axes[2].set_title("3. Macro (Urban Structure)\nDominant: Gamma/TLF", fontsize=16, weight='bold')
     axes[2].fill_between(x, y3, color='green', alpha=0.1)
     
-    # 4. Global Scale (SPL)
+    # 4. Global Scale (Gravity Constraints)
     r0, beta = 2.0, 2.5
     y4 = (x + r0)**(-beta)
     y4 /= np.trapz(y4, x)
     axes[3].plot(x, y4, 'blue', lw=3, label='SPL (Best Tail)')
-    axes[3].set_title("4. Global (City-wide)\nDominant: SPL / Lognormal", fontsize=16, weight='bold')
+    axes[3].set_title("4. Global (City-wide)\nDominant: LN + SPL", fontsize=16, weight='bold')
     axes[3].fill_between(x, y4, color='blue', alpha=0.1)
     
     # Common styling

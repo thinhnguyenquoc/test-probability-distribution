@@ -1,201 +1,111 @@
 # PROJECT_MANIFEST.yaml
 # =====================================================================
-# Cấu trúc dự án: Singapore Mobility Distribution Analysis
-# Dùng cho LLM đọc nhanh và kiểm chứng số liệu trong báo cáo.
-# Cập nhật: 2026-04-09
-#
-# Quy ước:
-#   report   = file báo cáo chính
-#   script   = code Python tạo ra dữ liệu
-#   data_in  = file dữ liệu đầu vào (raw)
-#   data_out = file dữ liệu đầu ra (kết quả từ script)
-#   figure   = hình ảnh xuất ra từ script
-#   status   = VERIFIED (số khớp CSV) | UNUSED (không dùng trong report)
+# Project: Singapore Scale-Dependent Mobility Laws
+# Updated: 2026-04-10 (After R2 removal and MLE update)
+# Purpose: Metadata for LLM to verify findings in draft_scientific_paper.md
 # =====================================================================
 
 report:
   file: draft_scientific_paper.md
-  title: "Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore"
+  thesis: "Human mobility follows a scale-dependent phase transition (LN -> Gamma -> SPL/TLF)"
 
 # =========================
-# DỮ LIỆU ĐẦU VÀO (RAW)
+# INPUT DATA (RAW)
 # =========================
 raw_data:
   - file: data_trip_sum.csv
-    desc: "Số lượng chuyến đi theo tuần giữa các cặp subzone (ORIGIN_SUBZONE, DESTINATION_SUBZONE, COUNT)"
-    rows: "~91,000 cặp OD"
-    note: "weekly-aggregated, KHÔNG có timestamp"
-
+    desc: "Weekly aggregated trips between Singapore subzones"
   - file: zone_euclid_distances.csv
-    desc: "Khoảng cách Euclidean (km) giữa các cặp subzone"
-    columns: [ORIGIN_SUBZONE, DESTINATION_SUBZONE, euclidean_distance_km]
-
+    desc: "Euclidean distances (km) for all OD pairs"
   - file: district_zone.csv
-    desc: "Ánh xạ subzone → district (zone_id, district_id, district_name)"
-    districts: [Central, East, North, North-East, West]
-    subzones_per_district: {Central: 128, West: 67, North-East: 42, North: 37, East: 29}
-
-  - file: fb_agg.csv
-    desc: "Facebook Mobility Data tổng hợp theo district và distance bin"
-    columns: [district_id, category, p_fb]
-    bins: ["(0,1)", "[1, 10)", "[10, 100)", "100+"]
-
-  - file: detail_pois.geojson
-    desc: "POI từ OpenStreetMap theo subzone"
-    columns: [SUBZONE_C, SUBZONE_N, amenity, leisure, office, public_transport, shop, tourism]
-
-  - file: sub_zone/data_sgp_subzone.shp (+ .shx, .dbf)
-    desc: "Bản đồ phân vùng subzone của Singapore (boundary geometries)"
+    desc: "Subzone to District mapping"
+  - file: singapore_40_regions.csv
+    desc: "Clustering of subzones into 40 groups for intermediate scale"
 
 # ==================================================
-# PIPELINE: Script → Data Output → Report Section
+# PIPELINE: Script → Data Output → Findings
 # ==================================================
-
 pipeline:
 
-  # ─── TABLE 1: Micro-scale (303 subzones) + Block Bootstrap CI (40 Groups) ───
-  - id: table1_micro
+  # ─── MICRO SCALE: Subzone (n=303) ───
+  - id: micro_scale
     report_section: "4.1"
-    report_table: "Table 1"
-    status: VERIFIED
+    table: "Table 1b"
     scripts:
-      - compare_distribution_formular.py    # tính BIC, R², KS per subzone
-      - bootstrap_block_table1_40groups.py  # block bootstrap 95% CI (n=40 blocks)
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv, singapore_40_regions.csv]
+      - compare_distribution_formular.py    # Per-subzone MLE fitting
+      - bootstrap_block_table1.py           # District-block bootstrap CIs
     outputs:
-      data:
-        - zone_distribution_metrics.csv     # per-subzone per-model metrics
-        - bootstrap_table1_ci_40groups.csv # 95% CI from 40-group blocks
-      figures:
-        - bootstrap_table1_distributions.png
-    numbers_in_report:
-      - "Lognormal BIC Best = 28.05%, 95% CI [16.45, 36.30]"
-      - "Lognormal Mean R² = 0.8199, 95% CI [0.7898, 0.8397]"
-    bootstrap:
-      method: "Block bootstrap, 40 group-blocks, 1000 iterations"
+      data: [zone_distribution_metrics.csv, bootstrap_table1_ci.csv]
+      figures: [model_dominance_subzone.png]
+    key_findings:
+      - "Lognormal BIC Dominance = 59.74% (181/303 subzones)"
+      - "95% BIC CI for LN: [45.6%, 66.9%]"
+      - "Lognormal also leads AD-stat (57.8%)"
+      - "Gamma is secondary (34.7%)"
 
-  # ─── TABLE 2: Macro-scale (5 districts) ───
-  - id: table2_macro
+
+  # ─── INTERMEDIATE SCALE: 40 Groups (n=34) ───
+  - id: intermediate_scale
     report_section: "4.2"
-    report_table: "Table 2"
-    status: VERIFIED
-    script: compare_distribution_formular_district.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, district_zone.csv]
-    outputs:
-      data: district_distribution_metrics.csv
-      figures: [district_distribution_metrics.png, bic_logic_illustration.png]
-    numbers_in_report:
-      - "SPL BIC Best = 40.0%"
-      - "Lognormal Mean R² = 0.9307"
-
-  # ─── TABLE 3: Intermediate-scale & Scale Comparison ───
-  - id: table3_scale_comparison
-    report_section: "4.3"
-    report_table: "Table 3"
-    status: VERIFIED
+    table: "Table 2b"
     scripts:
-      - group_subzones.py                   # Phân chia 40 groups
-      - plot_regions.py                     # Vẽ bản đồ 40 groups
-      - compare_distribution_40groups.py    # Tính metrics thang 40 groups
-    inputs: [sub_zone/data_sgp_subzone.shp, district_zone.csv, data_trip_sum.csv]
+      - group_subzones.py                   # Agglomerative clustering with connectivity
+      - compare_distribution_40groups.py    # Per-group MLE fitting
     outputs:
-      data:
-        - singapore_40_regions.csv          # Mapping 303 subzones -> 40 groups
-        - group_40_distribution_metrics.csv # Metrics per group
-      figures:
-        - singapore_40_regions.png          # Bản đồ Hình 1
-        - group_40_distribution_comparison.png # Biểu đồ Hình 3
-    numbers_in_report:
-      - "Lognormal BIC %: 28% -> 20.6% -> 0%"
-      - "Mean R² (40 Groups): LN=0.8370, SPL=0.7739, Gamma=0.8289"
+      data: [group_40_distribution_metrics.csv, group_40_dominance_by_metric.csv]
+      figures: [group_40_dominance_by_metric.png, group_40_distribution_comparison.png]
+    key_findings:
+      - "Gamma emerges as winner: 58.8% BIC"
+      - "Gamma also dominates AD-stat (55.9%)"
+      - "Lognormal drops to 29.4%"
 
-  # ─── TABLE 4: POI Efficiency Φ(d) ───
-  - id: table4_efficiency
+
+  # ─── MACRO SCALE: 5 Districts (n=5) ───
+  - id: macro_scale
+    report_section: "4.3"
+    table: "Table 3b"
+    script: compare_distribution_formular_district.py
+    outputs:
+      data: [district_distribution_metrics.csv, district_dominance_by_metric.csv]
+      figures: [district_dominance_by_metric.png, bic_logic_illustration.png]
+    key_findings:
+      - "Gamma and TLF tie for BIC (40% each)"
+      - "Lognormal fails BIC (0%) but leads AD-stat (80%)"
+      - "SPL leads KS-stat (Tail advantage)"
+
+
+  # ─── GLOBAL SCALE: Singapore-wide (n=1) ───
+  - id: global_scale
     report_section: "4.4"
-    report_table: "Table 4"
-    status: VERIFIED
-    scripts: [analyze_poi_attraction.py, analyze_poi_attraction_districts.py]
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson]
-    outputs:
-      data: [poi_analysis_results.csv, district_poi_results.csv]
-      figures: [poi_attraction_analysis.png]
-    numbers_in_report:
-      - "Mean R²_LN (POI Normalization) = 0.8071"
-
-  # ─── TABLE 5: Facebook Data Validation ───
-  - id: table5_facebook
-    report_section: "4.5"
-    report_table: "Table 5"
-    status: VERIFIED
-    script: compare_fb_all_models.py
-    outputs:
-      data: fb_vs_all_models.csv
-    numbers_in_report:
-      - "Mean EMD GT vs Facebook = 0.2643"
-
-  # ─── TABLE 6: Threshold Analysis ───
-  - id: table6_threshold
-    report_section: "4.6"
-    report_table: "Table 6"
-    status: VERIFIED
-    script: generate_table5_threshold_analysis.py
-    outputs:
-      data: table5_threshold_analysis.csv
-      figures: [threshold_transition.png]
-
-  # ─── TABLE 4: Global Analysis (City-wide scale) ───
-  - id: table4_global
-    report_section: "4.4"
-    report_table: "Table 4"
-    status: VERIFIED
+    table: "Table 4"
     script: calculate_global_metrics.py
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv]
     outputs:
-      numbers: [R2, BIC, KS-stat]
-      models: [Exponential, Lognormal, Gamma, SPL, TLF]
-    numbers_in_report:
-      - "Global Winner: Exponential (BIC=39.0M, KS=0.0698)"
-      - "Global TLF: BIC=39.1M"
+      data: []
+      figures: [distance_histogram.png, distance_loglog.png, distance_ccdf.png]
+    key_findings:
+      - "Lognormal recovers BIC dominance (38.82M)"
+      - "SPL still leads KS-stat (0.1096)"
+      - "Gamma leads AD-stat (5.25M), showing best overall tail-body balance"
 
-  # ─── TABLE 7: POI Efficiency Φ(d) ───
-  - id: table7_efficiency
-    report_section: "4.7"
-    report_table: "Table 7"
-    status: VERIFIED
-    scripts: [analyze_poi_attraction.py, analyze_poi_attraction_districts.py]
-    inputs: [data_trip_sum.csv, zone_euclid_distances.csv, detail_pois.geojson]
-    outputs:
-      data: [poi_analysis_results.csv, district_poi_results.csv]
-      figures: [poi_attraction_analysis.png, district_poi_analysis.png]
-    numbers_in_report:
-      - "Mean R²_LN (POI Normalization) = 0.8071"
-      - "Winner BIC (Efficiency): Shifted Power-Law (Global=42.1M, District=9.6M)"
 
-  # ─── TABLE 8: Threshold Analysis ───
-  - id: table8_threshold
-    report_section: "4.8"
-    report_table: "Table 8"
-    status: VERIFIED
-    script: generate_table5_threshold_analysis.py
-    outputs:
-      data: table5_threshold_analysis.csv
-      figures: [threshold_transition.png]
+  # ─── CONCEPTUAL & VISUAL PROOF ───
+  - id: phase_transition_visuals
+    report_section: "4.5"
+    scripts:
+      - generate_distribution_morphing.py
+    figures:
+      - distribution_morphing.png           # Showcases PDF change from LN to SPL
+    diagrams:
+      - Mobility Phase Transition (Mermaid)
+      - Myth vs Reality (Mermaid)
 
 # =========================================
-# KIỂM CHỨNG NHANH (cho LLM)
+# VERIFICATION (Quick checks for LLM)
 # =========================================
 verification_commands:
-  table1_subzone: |
-    python3 -c "import pandas as pd; z = pd.read_csv('zone_distribution_metrics.csv');
-    print(z.groupby('Model')['R2'].mean())"
-
-  table4_global: |
+  check_subzone_lead: |
+    python3 -c "import pandas as pd; df = pd.read_csv('model_dominance_by_metric.csv'); print(df[df['Metric']=='Best_BIC'])"
+  check_group_lead: |
+    python3 -c "import pandas as pd; df = pd.read_csv('group_40_dominance_by_metric.csv'); print(df[df['Metric']=='Best_BIC'])"
+  check_global_bic: |
     python3 calculate_global_metrics.py
-
-  table7_efficiency: |
-    python3 -c "import pandas as pd; d = pd.read_csv('district_poi_results.csv');
-    print(f'Mean district R2 LN: {d.r2_log.mean():.4f}');
-    print(f'Mean district BIC SPL: {d.bic_spl.mean()/1e6:.1f}M')"
-
-  table8_threshold: |
-    python3 generate_table5_threshold_analysis.py

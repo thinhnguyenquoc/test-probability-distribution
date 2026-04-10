@@ -46,8 +46,10 @@ def run_global_analysis():
         'Truncated Levy Flight': (tlf_dist, [1, 1, 2, 10], 4, ([0, 0.1, 0.1, 0.1], [np.inf, 50, 20, 100]))
     }
     
-    print(f"| Model | R2 | Log-Likelihood | AIC | BIC | KS-stat |")
+    print(f"| Model | Log-Likelihood | AIC | BIC | KS-stat | AD-stat |")
     print(f"|---|---|---|---|---|---|")
+
+
     for name, (func, p0, k, bounds) in models.items():
         try:
             # Objective function for MLE: Negative Log-Likelihood
@@ -75,9 +77,17 @@ def run_global_analysis():
             y_cdf = np.cumsum(y_prob)
             fit_cdf = np.cumsum(y_fit_pmf)
             ks = np.max(np.abs(y_cdf - fit_cdf))
-            print(f"| {name} | {r2:.4f} | {ll:,.0f} | {aic:,.0f} | {bic:,.0f} | {ks:.4f} |")
+            # AD
+            fit_cdf_diff = np.diff(np.insert(fit_cdf, 0, 0))
+            ad_num = (y_cdf - fit_cdf)**2
+            ad_den = np.clip(fit_cdf * (1 - fit_cdf), 1e-6, None)
+            ad_stat = total_trips * np.sum((ad_num / ad_den) * fit_cdf_diff)
+
+            print(f"| {name} | {ll:,.0f} | {aic:,.0f} | {bic:,.0f} | {ks:.4f} | {ad_stat:,.1f} |")
         except Exception as e:
             print(f"| {name} | Error: {e} | - | - |")
+
+
 
 if __name__ == "__main__":
     run_global_analysis()

@@ -98,14 +98,21 @@ for group_id, group_data in df.groupby('group_id'):
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(total_trips) - 2 * log_likelihood
             
+            # AD Stat
+            fit_cdf_diff = np.diff(np.insert(model_cdf, 0, 0))
+            ad_num = (empirical_cdf - model_cdf)**2
+            ad_den = np.clip(model_cdf * (1 - model_cdf), 1e-6, None)
+            ad_stat = total_trips * np.sum((ad_num / ad_den) * fit_cdf_diff)
+
             group_res[name] = {
-                'R2': round(r2, 4),
                 'KS_Stat': round(ks_stat, 4),
+                'AD_Stat': round(ad_stat, 4),
                 'Log_Likelihood': round(log_likelihood, 2),
                 'AIC': round(aic, 2),
                 'BIC': round(bic, 2),
                 'k': k
             }
+
         except:
             pass
             
@@ -119,11 +126,12 @@ for group_id, group_data in df.groupby('group_id'):
             'group_id': group_id,
             'Total_Trips': total_trips,
             'Model': name,
-            'R2': metrics['R2'],
             'KS_Stat': metrics['KS_Stat'],
+            'AD_Stat': metrics['AD_Stat'],
             'Log_Likelihood': metrics['Log_Likelihood'],
             'AIC': metrics['AIC'],
             'BIC': metrics['BIC'],
+
             'Is_Best_BIC': (name == best_model)
         })
 

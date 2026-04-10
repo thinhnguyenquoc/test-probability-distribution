@@ -107,14 +107,24 @@ for zone, group in df.groupby('ORIGIN_SUBZONE'):
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(total_trips) - 2 * log_likelihood
             
+            # Anderson-Darling for Choice (Binned approximation)
+            # A^2 = N * sum( (CDF_obs - CDF_fit)^2 / (CDF_fit * (1 - CDF_fit)) * dCDF_fit )
+            # To avoid division by zero, we clip CDF_fit
+            fit_cdf_diff = np.diff(np.insert(model_cdf, 0, 0))
+            ad_num = (empirical_cdf - model_cdf)**2
+            ad_den = model_cdf * (1 - model_cdf)
+            ad_den = np.clip(ad_den, 1e-6, None)
+            ad_stat = total_trips * np.sum((ad_num / ad_den) * fit_cdf_diff)
+
             zone_res[name] = {
-                'R2': round(r2, 4),
                 'KS_Stat': round(ks_stat, 4),
+                'AD_Stat': round(ad_stat, 4),
                 'Log_Likelihood': round(log_likelihood, 2),
                 'AIC': round(aic, 2),
                 'BIC': round(bic, 2),
                 'k': k
             }
+
         except:
             pass
             
@@ -145,11 +155,12 @@ for zone, group in df.groupby('ORIGIN_SUBZONE'):
             'Total_Trips': total_trips,
             'Model': name,
             'k_params': metrics['k'],
-            'R2': metrics['R2'],
             'KS_Stat': metrics['KS_Stat'],
+            'AD_Stat': metrics['AD_Stat'],
             'Log_Likelihood': metrics['Log_Likelihood'],
             'AIC': metrics['AIC'],
             'BIC': metrics['BIC'],
+
             'LR_Stat_SPL_vs_TLF': lr_stat if name in ['Shifted Power-Law', 'Truncated Lévy Flight'] else np.nan,
             'p_value_LR': p_value if name in ['Shifted Power-Law', 'Truncated Lévy Flight'] else np.nan,
             'Is_Best_BIC': (name == best_model)

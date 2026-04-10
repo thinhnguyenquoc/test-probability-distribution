@@ -7,7 +7,8 @@ date: "April 2026"
 # Individual habits vs Urban Gravity: Scale-dependent mobility transition in Singapore
 
 ## 1. Abstract
-Quy luật di chuyển của con người là một trong những chủ đề gây tranh cãi nhất trong vật lý đô thị, thường xoay quanh sự đối lập giữa lý thuyết lũy thừa (power-law) và phân vùng lognormal. Nghiên cứu này cung cấp bằng chứng thực nghiệm từ dữ liệu di chuyển thực tế tại Singapore để khẳng định sự tồn tại của **Quy luật Di chuyển phụ thuộc Quy mô (Scale-Dependent Mobility Law)**. Bằng việc so sánh 5 mô hình (Lognormal, Shifted Power-Law, Gamma, Exponential, TLF) qua 4 nấc thang không gian từ vi mô đến vĩ mô, chúng tôi phát hiện một tiến trình chuyển pha liền mạch: tại cấp độ Subzone, **Lognormal** đạt hiệu quả thống kê vượt trội (chiếm ưu thế BIC tại 59.7% số vùng) thể hiện thói quen cá nhân; tại cấp độ trung gian, **Gamma** đóng vai trò vùng đệm chiếm ưu thế BIC tại 58.8% số nhóm vùng; và tại cấp độ District, các đặc tính hệ thống trỗi dậy khiến các mô hình **Gamma** và **Truncated Lévy Flight (TLF)** chia sẻ ưu thế (mỗi bên đạt BIC tốt nhất tại 40% số quận). Kết quả nghiên cứu xác nhận rằng không có một quy luật đơn nhất cho di chuyển đô thị; thay vào đó, sự tương tác giữa thói quen cá nhân và lực hấp dẫn hệ thống được quyết định bởi mức độ tổng hợp không gian.
+**Quy luật di chuyển của con người không tuân theo một phân phối phổ quát duy nhất; thay vào đó, nó là một tiến trình chuyển pha phụ thuộc quy mô (scale-dependent phase transition).** Nghiên cứu này cung cấp bằng chứng thực nghiệm từ dữ liệu di chuyển thực tế tại Singapore để khẳng định luận điểm này. Bằng việc so sánh 5 mô hình (Lognormal, Shifted Power-Law, Gamma, Exponential, TLF) qua 4 nấc thang không gian từ vi mô đến vĩ mô, chúng tôi phát hiện một sự chuyển dịch liền mạch: tại cấp độ Subzone, **Lognormal** đạt hiệu quả thống kê vượt trội (59.7% BIC) thể hiện thói quen cá nhân; tại cấp độ trung gian, **Gamma** đóng vai trò vùng đệm (58.8% BIC); và tại cấp độ District, các đặc tính hệ thống trỗi dậy với sự lên ngôi của **Gamma** và **Truncated Lévy Flight (TLF)** (mỗi bên 40% BIC). Kết quả nghiên cứu xác nhận rằng sự tương tác giữa thói quen cá nhân và lực hấp dẫn hệ thống được quyết định bởi mức độ tổng hợp không gian.
+
 
 
 
@@ -149,6 +150,8 @@ Với mỗi đơn vị không gian, mô hình tốt nhất được xác định
 - **AIC/BIC**: mô hình có giá trị **thấp nhất** được chọn.
 - **LLH**: mô hình có giá trị **cao nhất** (ít âm nhất) được chọn.
 - **KS-stat**: mô hình có giá trị **thấp nhất** được chọn.
+- **AD-stat**: (Anderson-Darling) mô hình có giá trị **thấp nhất** được chọn, ưu tiên độ khớp ở phần đuôi.
+
 
 Chỉ số **BIC Winner (%)** được định nghĩa là tỷ lệ phần trăm số đơn vị không gian mà một mô hình đạt BIC thấp nhất, dùng để so sánh ưu thế tổng hợp qua nhiều quy mô. Ngoài ra, phân tích **Đồng thuận (Consensus)** xác định mô hình thắng theo nhiều tiêu chí nhất tại mỗi đơn vị để có cái nhìn tổng hợp đa chiều.
 
@@ -194,17 +197,19 @@ Tại quy mô nhỏ, hành vi di chuyển bị chi phối bởi các lựa chọ
 
 **Table 1b.** Tỉ lệ số phân khu (Subzones) mà mỗi mô hình chiếm ưu thế theo từng chỉ số (n = 303).
 
-| Model | BIC (count/%) | 95% BIC CI | KS (count/%) | LLH (count/%) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Lognormal** | **182 (60.0%)** | [45.6%, 66.9%] | **141 (46.5%)** | **182 (60.1%)** |
-| **Exponential** | 7 (2.3%) | [0.9%, 3.9%] | 15 (5.0%) | 0 (0.0%) |
-| **Gamma** | 105 (34.7%) | [28.0%, 48.7%] | 62 (20.5%) | 109 (36.0%) |
-| **Shifted Power-Law** | 9 (3.0%) | [0.4%, 9.2%] | 53 (17.5%) | 8 (2.6%) |
-| **Trun. Lévy Flight** | 1 (0.3%) | [0.0%, 1.1%] | 32 (10.6%) | 4 (1.3%) |
+| Model | BIC (count/%) | 95% BIC CI | KS (count/%) | AD (count/%) | LLH (count/%) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Lognormal** | **181 (59.7%)** | [45.6%, 66.9%] | **141 (46.5%)** | **175 (57.8%)** | **182 (60.1%)** |
+| **Exponential** | 7 (2.3%) | [0.9%, 3.9%] | 15 (5.0%) | 6 (2.0%) | 0 (0.0%) |
+| **Gamma** | 105 (34.7%) | [28.0%, 48.7%] | 62 (20.5%) | 81 (26.7%) | 109 (36.0%) |
+| **Shifted Power-Law** | 9 (3.0%) | [0.4%, 9.2%] | 53 (17.5%) | 31 (10.2%) | 8 (2.6%) |
+| **Trun. Lévy Flight** | 1 (0.3%) | [0.0%, 1.1%] | 32 (10.6%) | 10 (3.3%) | 4 (1.3%) |
+
 
 
 ![Model Dominance Subzone](model_dominance_subzone.png)
-*Hình 4. Thống kê số lượng Subzone mà mỗi mô hình đạt kết quả tốt nhất theo 5 tiêu chí khác nhau (Ước lượng MLE).*
+*Hình 2. Thống kê số lượng Subzone mà mỗi mô hình đạt kết quả tốt nhất theo các tiêu chí (MLE).*
+
 
 **Nhận xét quy mô Vi mô - Ưu thế tuyệt đối của hành vi cá nhân:**
 - **Thống trị thống kê (BIC/LLH):** Lognormal dẫn đầu tại xấp xỉ **60%** số vùng, mang lại hiệu quả thông tin cao nhất. Khoảng tin cậy 95% [45.6%, 66.9%] xác nhận vị thế áp đảo so với các mô hình hệ thống.
@@ -220,17 +225,19 @@ Khi dữ liệu được gom nhóm lên cấp độ 40 vùng địa lý, đặc 
 
 **Table 2b.** Tỉ lệ số nhóm (40 Groups) mà mỗi mô hình chiếm ưu thế theo chỉ số (n = 34 groups hợp lệ).
 
-| Model | BIC (n/%) | KS (n/%) | LLH (n/%) |
-| :--- | :---: | :---: | :---: |
-| **Lognormal** | 10 (29.4%) | 11 (32.4%) | 10 (29.4%) |
-| **Exponential** | 2 (5.9%) | 2 (5.9%) | 0 (0.0%) |
-| **Gamma** | **20 (58.8%)** | **14 (41.2%)** | **22 (64.7%)** |
-| **Shifted Power-Law** | 1 (2.9%) | 6 (17.6%) | 0 (0.0%) |
-| **Trun. Lévy Flight** | 1 (2.9%) | 1 (2.9%) | 2 (5.9%) |
+| Model | BIC (n/%) | KS (n/%) | AD (n/%) | LLH (n/%) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Lognormal** | 10 (29.4%) | 11 (32.4%) | 13 (38.2%) | 10 (29.4%) |
+| **Exponential** | 2 (5.9%) | 2 (5.9%) | 1 (2.9%) | 0 (0.0%) |
+| **Gamma** | **20 (58.8%)** | **14 (41.2%)** | **19 (55.9%)** | **22 (64.7%)** |
+| **Shifted Power-Law** | 1 (2.9%) | 6 (17.6%) | 1 (2.9%) | 0 (0.0%) |
+| **Trun. Lévy Flight** | 1 (2.9%) | 1 (2.9%) | 0 (0.0%) | 2 (5.9%) |
+
 
 
 ![Group Dominance 40](group_40_dominance_by_metric.png)
-*Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô trung gian (40 Groups - MLE).*
+*Hình 3. Thống kê mức độ ưu thế của các mô hình tại quy mô trung gian (40 Groups - MLE).*
+
 
 **Nhận xét quy mô Trung gian - Sự trỗi dậy của vùng đệm Gamma:**
 Tại quy mô này, **Gamma thống trị rõ rệt** (BIC đạt 58.8%), đóng vai trò biểu diễn cho sự cộng gộp các thói quen cá nhân. Vị thế thống kê của Lognormal giảm mạnh từ 60% (Subzone) xuống còn **29.4%**. Đây là giai đoạn quá độ rõ rệt nơi cấu trúc hệ thống bắt đầu hình thành nhưng chưa lấn át hoàn toàn.
@@ -239,24 +246,27 @@ Tại quy mô này, **Gamma thống trị rõ rệt** (BIC đạt 58.8%), đóng
 Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
 
 ![So sánh phân phối 40 nhóm](group_40_distribution_comparison.png)
-*Hình 2. Bản đồ phân bổ các mô hình tối ưu (BIC) tại quy mô 40 nhóm.*
+*Hình 4. Bản đồ phân bổ không gian của mô hình tối ưu (BIC) tại quy mô 40 nhóm.*
+
 
 ### 4.3. Khảo sát tại Cấp Vĩ mô - District (Macro-scale)
 
 
 **Table 3b.** Tỉ lệ số quận (5 Districts) mà mỗi mô hình chiếm ưu thế theo từng chỉ số.
 
-| Model | BIC (n/%) | KS (n/%) | LLH (n/%) |
-| :--- | :---: | :---: | :---: |
-| **Lognormal** | 0 (0.0%) | 1 (20.0%) | 0 (0.0%) |
-| **Exponential** | 1 (20.0%) | 1 (20.0%) | 0 (0.0%) |
-| **Gamma** | **2 (40.0%)** | 0 (0.0%) | **3 (60.0%)** |
-| **Shifted Power-Law** | 0 (0.0%) | **2 (40.0%)** | 0 (0.0%) |
-| **Trun. Lévy Flight** | **2 (40.0%)** | 1 (20.0%) | 2 (40.0%) |
+| Model | BIC (n/%) | KS (n/%) | AD (n/%) | LLH (n/%) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Lognormal** | 0 (0.0%) | 1 (20.0%) | **4 (80.0%)** | 0 (0.0%) |
+| **Exponential** | 1 (20.0%) | 1 (20.0%) | 0 (0.0%) | 0 (0.0%) |
+| **Gamma** | **2 (40.0%)** | 0 (0.0%) | 1 (20.0%) | **3 (60.0%)** |
+| **Shifted Power-Law** | 0 (0.0%) | **2 (40.0%)** | 0 (0.0%) | 0 (0.0%) |
+| **Trun. Lévy Flight** | **2 (40.0%)** | 1 (20.0%) | 0 (0.0%) | 2 (40.0%) |
+
 
 
 ![District Dominance](district_dominance_by_metric.png)
-*Hình 6. Thống kê mức độ ưu thế của các mô hình tại quy mô vĩ mô (5 Districts).*
+*Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô vĩ mô (5 Districts).*
+
 
 Tại cấp độ District, thực tế là một **cuộc tranh giành giữa các mô hình hệ thống và quá độ**:
 - **Gamma và Truncated Lévy Flight (TLF)**: Cùng dẫn đầu BIC tại **40% số quận** (2/5 mỗi bên). Điều này cho thấy sự cân bằng giữa mô hình gộp (Gamma) và mô hình hệ thống (TLF) ở quy mô macro.
@@ -264,7 +274,8 @@ Tại cấp độ District, thực tế là một **cuộc tranh giành giữa c
 - **Lognormal**: Chính thức có **0% BIC**, xác nhận sự thất bại hoàn toàn về mặt thông tin thống kê ở cấp vĩ mô khi thói quen cá nhân bị lấn át bởi cấu trúc đô thị.
 
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
-*Hình 3. So sánh hiệu quả của 5 mô hình tại cấp District: SPL và TLF thể hiện sự ưu việt ở phần đuôi (log-log scale), trong khi Lognormal và Gamma mặc dù khớp phần thân tốt (Linear scale) nhưng sụt giảm nhanh ở khoảng cách xa.*
+*Hình 6. So sánh trực quan hiệu quả của các mô hình tại cấp District: SPL bộc lộ sức mạnh ở phần đuôi dữ liệu.*
+
 
 ### 4.4. Khảo sát tại Cấp Toàn thành phố - Global (City-wide)
 
@@ -274,13 +285,14 @@ Tại cấp độ District, thực tế là một **cuộc tranh giành giữa c
 
 **Table 4.** Hiệu quả mô hình tại quy mô toàn thành phố (Global scale, n = 1).
 
-| Model | $k$ | LLH | AIC | BIC | KS-stat |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | **-19.41M**| **38.82M** | **38.82M** | 0.1274 |
-| **Exponential** | 2 | -19.53M | 39.06M | 39.06M | 0.1134 |
-| **Gamma** | 3 | -19.47M | 38.95M | 38.95M | 0.1231 |
-| **Shifted Power-Law** | 3 | -19.59M | 39.19M | 39.19M | **0.1096** |
-| **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | 39.06M | 0.1133 |
+| Model | $k$ | LLH | AIC | BIC | KS-stat | AD-stat |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Lognormal** | 3 | **-19.41M**| **38.82M** | **38.82M** | 0.1274 | 39.72M |
+| **Exponential** | 2 | -19.53M | 39.06M | 39.06M | 0.1134 | 10.92M |
+| **Gamma** | 3 | -19.47M | 38.95M | 38.95M | 0.1231 | **5.25M** |
+| **Shifted Power-Law** | 3 | -19.59M | 39.19M | 39.19M | **0.1096** | 27.83M |
+| **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | 39.06M | 0.1133 | 11.02M |
+
 
 
 Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế BIC** dẫn đầu (38.82M). Điều này có vẻ mâu thuẫn với xu hướng suy giảm ở các cấp độ trước, nhưng có thể giải thích bằng việc khi gộp toàn bộ dữ liệu Singapore, mật độ các chuyến đi ở cự ly 5-15km (vùng đỉnh của LN) trở nên quá lớn, khiến LN tối ưu hóa tốt hơn về mặt thông tin tổng thể. Tuy nhiên, **Shifted Power-Law vẫn giữ KS-stat tốt nhất (0.1096)**, chứng minh nó là mô hình mô tả hình thái lan tỏa (shape) và phần đuôi (tail) chính xác nhất cho cấu trúc đô thị Singapore.
@@ -292,7 +304,8 @@ Tại thang đo toàn thành phố (Global), **Lognormal phục hồi vị thế
 ![Biểu đồ Log-Log với các đường khớp mô hình](distance_loglog.png)
 ![Hàm phân phối tích lũy bổ sung (CCDF)](distance_ccdf.png)
 
-*Hình 6. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram tuyến tính, (B) Log-Log plot so sánh Exponential vs Power-Law, và (C) CCDF phân tích đặc tính heavy-tail.*
+*Hình 7. Phân tích trực quan về hành vi di chuyển toàn thành phố (Global Scale): (A) Histogram, (B) Log-Log Plot, và (C) CCDF.*
+
 
 **Nhận xét từ trực quan hóa:**
 - **Histogram:** Cho thấy sự sụt giảm nhanh chóng của các chuyến đi ngắn, nhưng vẫn duy trì các chuyến đi dài ở khoảng cách >20 km.
@@ -363,16 +376,48 @@ graph TD
 ```
 
 ![Distribution Morphing](distribution_morphing.png)
-*Hình 7. **Distribution Morphing**: Sự tiến hóa của hàm mật độ xác suất (PDF) từ quy mô Micro đến Global. Hình ảnh cho thấy sự chuyển pha từ các thói quen cá nhân (Lognormal - đỉnh nhọn, plateau ngắn) sang quá trình cộng gộp (Gamma) và cuối cùng là cấu trúc hệ thống bị giới hạn bởi lực hấp dẫn đô thị (SPL/TLF - đuôi dài, suy giảm chậm).*
+*Hình 8. **Distribution Morphing**: Bằng chứng trực quan cho Tiến trình Chuyển pha (Phase Transition). Phân phối biến đổi từ đỉnh nhọn thói quen (Lognormal) sang đuôi dài hệ thống (SPL) khi quy mô mở rộng.*
+
 
 **Quy luật Chuyển dịch (The Transition Path):**
 
 
 
-1. **Micro (LN dominates)**: Lognormal thắng vượt trội về thống kê (BIC 60%) với KS-stat thấp nhất tại 46.5% số vùng.
-2. **Intermediate (Gamma takes over)**: Gamma chiếm ưu tế rõ rệt (BIC 58.8%), LN sụt giảm xuống còn 29.4%.
-3. **Macro (Gamma / TLF Tie)**: Gamma và TLF hòa nhau về BIC (mỗi bên 40%). LN hoàn toàn biến mất (BIC 0%).
-4. **Global (LN Recovered / SPL Tail)**: Lognormal phục hồi BIC dẫn đầu nhờ độ khớp mật độ tổng thể, nhưng SPL vẫn giữ KS thấp nhất cho thấy ưu thế về hình học đuôi (tail).
+## 5. Discussion: Unifying the Scale-Dependent Laws
+
+### 5.1. Phá vỡ lầm tưởng về "Quy luật Phổ quát" (Universal Law Fallacy)
+
+Phát hiện quan trọng nhất của nghiên cứu này là sự khẳng định: di chuyển con người **không tuân theo một hàm phân phối duy nhất** áp dụng cho mọi thang đo. Mọi cố gắng tìm kiếm một mô hình vạn năng (ví dụ: TLF hay SPL) cho toàn bộ hệ thống đều bỏ qua các cơ chế căn bản diễn ra ở các quy mô khác nhau.
+
+```mermaid
+graph TD
+    subgraph Myth ["Lầm tưởng về Quy luật Phổ quát"]
+    U["Một mô hình duy nhất<br/>(SPL / TLF)"] -- "Áp dụng cho mọi quy mô" --> AllScales(("Thất bại tại<br/>các quy mô nhỏ"))
+    style Myth fill:#ffeaea,stroke:#cc0000,stroke-width:2px
+    end
+
+    subgraph Reality ["Thực tế: Chuyển pha theo Quy mô (Phase Transition)"]
+    direction LR
+    Micro("Micro Scale") -- "<b>Lognormal</b><br/>(Thói quen)" --> P1
+    Inter("Interm. Scale") -- "<b>Gamma</b><br/>(Cộng gộp)" --> P2
+    Macro("Macro Scale") -- "<b>SPL / TLF</b><br/>(Hệ thống)" --> P3
+    Global("Global Scale") -- "<b>LN + SPL</b><br/>(Hấp dẫn)" --> P4
+    
+    P1 --> P2 --> P3 --> P4
+    style Reality fill:#eaffea,stroke:#00cc00,stroke-width:2px
+    end
+```
+*Hình 9. So sánh khái niệm giữa quan điểm Phổ quát truyền thống (Thất bại) và Quy luật Chuyển pha phụ thuộc Quy mô (Thực tế) được đề xuất trong nghiên cứu này.*
+
+
+### 5.2. Sự đối kháng giữa Thói quen và Lực hấp dẫn
+
+Nghiên cứu làm rõ rằng xác suất di chuyển là kết quả của sự giằng co giữa hai cực:
+1.  **Cực Thói quen (Habit Pole):** Áp đảo ở quy mô Subzone. Ở đây, con người di chuyển dựa trên các lộ trình lặp đi lặp lại và sự thuận tiện. Phân phối Lognormal thắng tuyệt đối vì nó mô tả tốt vùng "plateau" (không di chuyển cực ngắn) và sự suy giảm ổn định của thói quen.
+2.  **Cực Hấp dẫn (Gravity Pole):** Áp đảo ở quy mô District/Global. Ở quy mô này, thói quen cá nhân bị trung hòa, chỉ còn lại sự ràng buộc của cấu trúc đô thị và các trung tâm kinh tế. Các mô hình Power-Law và TLF trỗi dậy để mô tả bản chất "vô quy mô" của hệ thống hạ tầng.
+
+Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL** chính là lộ trình toán học của quá trình chuyển pha từ hành vi vi mô sang cấu trúc vĩ mô.
+
 
 
 

@@ -41,9 +41,11 @@ for did, grp in df.groupby('district_id'):
         'Best_AIC': best_model_by_metric(grp, 'AIC'),            # thấp hơn tốt hơn
         'Best_BIC': best_model_by_metric(grp, 'BIC'),            # thấp hơn tốt hơn
         'Best_KS':  best_model_by_metric(grp, 'KS_Stat'),        # thấp hơn tốt hơn
+        'Best_AD':  best_model_by_metric(grp, 'AD_Stat'),        # thấp hơn tốt hơn
         'Best_LLH': best_model_by_metric(grp, 'Log_Likelihood', higher_is_better=True),  # cao hơn tốt hơn
-        'Best_R2':  best_model_by_metric(grp, 'R2', higher_is_better=True),              # cao hơn tốt hơn
     }
+
+
     per_district.append(row)
 
 per_district_df = pd.DataFrame(per_district)
@@ -57,9 +59,11 @@ metrics = {
     'AIC':           'Best_AIC',
     'BIC':           'Best_BIC',
     'KS-stat':       'Best_KS',
+    'AD-stat':       'Best_AD',
     'Log-Likelihood':'Best_LLH',
-    'R²':            'Best_R2',
 }
+
+
 
 model_order = ['Lognormal', 'Exponential', 'Gamma', 'Shifted Power-Law', 'Truncated Lévy Flight']
 palette = {
@@ -72,8 +76,9 @@ palette = {
 
 dominance = {}
 print("\n" + "="*65)
-print(f"{'Model':<25}  {'AIC':>6}  {'BIC':>6}  {'KS':>6}  {'LLH':>6}  {'R²':>6}")
+print(f"{'Model':<25}  {'AIC':>6}  {'BIC':>6}  {'KS':>6}  {'AD':>6}  {'LLH':>6}")
 print("="*65)
+
 for model in model_order:
     row = {}
     for label, col in metrics.items():
@@ -81,13 +86,15 @@ for model in model_order:
         pct = cnt / total_districts * 100 if total_districts > 0 else 0
         row[label] = (cnt, pct)
     dominance[model] = row
-    aic_s = f"{row['AIC'][0]}({row['AIC'][1]:.0f}%)"
-    bic_s = f"{row['BIC'][0]}({row['BIC'][1]:.0f}%)"
+    aic_s = f"{row['AIC'][0]}({row['AIC'][1]:.1f}%)"
+    bic_s = f"{row['BIC'][0]}({row['BIC'][1]:.1f}%)"
     ks_s  = f"{row['KS-stat'][0]}({row['KS-stat'][1]:.0f}%)"
+    ad_s  = f"{row['AD-stat'][0]}({row['AD-stat'][1]:.0f}%)"
     llh_s = f"{row['Log-Likelihood'][0]}({row['Log-Likelihood'][1]:.0f}%)"
-    r2_s  = f"{row['R²'][0]}({row['R²'][1]:.0f}%)"
-    print(f"{model:<25}  {aic_s:>9}  {bic_s:>9}  {ks_s:>9}  {llh_s:>9}  {r2_s:>9}")
-print("="*65)
+    print(f"{model:<25}  {aic_s:>9}  {bic_s:>11}  {ks_s:>9}  {ad_s:>9}  {llh_s:>9}")
+
+print("="*55)
+
 
 # DataFrame tổng hợp
 summary_rows = []
@@ -98,9 +105,11 @@ for model in model_order:
         'AIC (n / %)':           f"{r['AIC'][0]} / {r['AIC'][1]:.1f}%",
         'BIC (n / %)':           f"{r['BIC'][0]} / {r['BIC'][1]:.1f}%",
         'KS-stat (n / %)':       f"{r['KS-stat'][0]} / {r['KS-stat'][1]:.1f}%",
+        'AD-stat (n / %)':       f"{r['AD-stat'][0]} / {r['AD-stat'][1]:.1f}%",
         'Log-Likelihood (n / %)':f"{r['Log-Likelihood'][0]} / {r['Log-Likelihood'][1]:.1f}%",
-        'R² (n / %)':            f"{r['R²'][0]} / {r['R²'][1]:.1f}%",
     })
+
+
 summary_df = pd.DataFrame(summary_rows)
 summary_df.to_csv('district_dominance_by_metric.csv', index=False)
 
@@ -110,10 +119,12 @@ summary_df.to_csv('district_dominance_by_metric.csv', index=False)
 
 def consensus(row):
     votes = [row['Best_AIC'], row['Best_BIC'], row['Best_KS'],
-             row['Best_LLH'], row['Best_R2']]
+             row['Best_AD'], row['Best_LLH']]
+
     from collections import Counter
     top_model, top_votes = Counter(votes).most_common(1)[0]
     return top_model, top_votes
+
 
 per_district_df[['Consensus_Model', 'Consensus_Votes']] = per_district_df.apply(
     lambda r: pd.Series(consensus(r)), axis=1
@@ -131,13 +142,15 @@ fig.suptitle(
     fontsize=16, fontweight='bold', y=0.98
 )
 
-gs = GridSpec(2, 3, figure=fig, hspace=0.44, wspace=0.32)
+gs = GridSpec(2, 3, figure=fig, hspace=0.3, wspace=0.3)
 axes = [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]),
         fig.add_subplot(gs[0, 2]), fig.add_subplot(gs[1, 0]),
         fig.add_subplot(gs[1, 1])]
 
 metric_cols = list(metrics.values())
-titles_display = ['AIC', 'BIC', 'KS-stat', 'Log-Likelihood', 'R²']
+titles_display = ['AIC', 'BIC', 'KS-stat', 'AD-stat', 'Log-Likelihood']
+
+
 
 for ax, col, title in zip(axes, metric_cols, titles_display):
     counts = per_district_df[col].value_counts()

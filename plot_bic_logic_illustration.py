@@ -91,7 +91,8 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
 # Subplot 1: Linear Scale
 ax1.bar(x_data, y_prob, width=(bins[1]-bins[0])*0.8, alpha=0.2, color='gray', label='Empirical Data')
 for name, res in results.items():
-    ax1.plot(x_data, res['y_fit'], color=res['color'], lw=2.5, label=f"{name} (R²={res['r2']:.4f})")
+    ax1.plot(x_data, res['y_fit'], color=res['color'], lw=2.5, label=f"{name}")
+
 
 ax1.set_title(f'Linear Scale (Head Fit): {target_district}', fontsize=15, weight='bold')
 ax1.set_xlabel('Distance (km)', fontsize=12)
