@@ -63,6 +63,18 @@ Tại các đô thị nén (Compact City) như Singapore, các giả thuyết đ
     - **Quy mô vĩ mô (Macro-scale):** Ở quy mô lớn hơn, mô hình sẽ bị thay đổi do bị chi phối bởi các đặc tính hệ thống và cấu trúc đô thị tổng thể.
 2. **Quy luật TLF sẽ không còn đạt hiệu quả cao** với các đô thị lớn nhưng diện tích nhỏ như Singapore do các di chuyển dài bị dứt đoạn với hạn chế địa lý trong nhiều quy mô quan sát.
 
+### 2.3. Data Description (Mô tả dữ liệu)
+
+Để đảm bảo tính khách quan và độ tin cậy của phân tích đa quy mô, nghiên cứu sử dụng bộ dữ liệu di chuyển tích hợp với các thông số chính sau:
+
+- **Nguồn dữ liệu di chuyển:** Tập dữ liệu Ground-Truth (GT) đa nguồn được tổng hợp và ẩn danh, phản ánh luồng di chuyển thực tế tại Singapore.
+- **Quy mô mẫu (Sample Size):** Tổng cộng **7.43 triệu chuyến đi** được ghi nhận, đảm bảo ý nghĩa thống kê ngay cả khi chia nhỏ xuống cấp độ phân khu (subzone).
+- **Độ phân giải không gian (Spatial Resolution):** Dữ liệu được ánh xạ lên hệ thống phân vị của Singapore với **303 subzones** hợp lệ. Khoảng cách giữa các zone được tính toán dựa trên tọa độ tâm (centroids) trong hệ tọa độ phẳng **SVY21 (EPSG:3414)** để đảm bảo độ chính xác cho hòn đảo nhỏ.
+- **Thời gian bao phủ (Temporal Coverage):** Dữ liệu thu thập trong 1 tuần.
+<!-- - **Dữ liệu bổ trợ:** 
+    - **Hạ tầng đô thị:** Gồm hơn **50,000 điểm tiện ích (POI)** từ OpenStreetMap được phân loại thành 6 nhóm (amenity, leisure, office, public transport, shop, tourism).
+    - **Dữ liệu kiểm chứng:** Sử dụng **Facebook Mobility Data** (ping fractions) để đối chiếu sai số và xác thực tính phổ quát của các mô hình đã tìm được. -->
+
 Để cung cấp cái nhìn tổng quan về các mô hình sẽ được phân tích, chúng tôi tóm tắt các đặc tính toán học và ý nghĩa của chúng trong Bảng 0.
 
 **Table 0.** Summary of candidate mobility models ranked by tail strength.
