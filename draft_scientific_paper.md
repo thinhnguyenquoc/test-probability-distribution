@@ -132,7 +132,34 @@ trong đó $N$ là tổng số chuyến đi của đơn vị không gian, $k$ l�
 **(c) KS-statistic** — đo sai lệch tích lũy tối đa giữa CDF thực nghiệm và lý thuyết:
 $$D_{\mathrm{KS}} = \max_b \left|\sum_{b'=1}^{b} \hat{p}_{b'} - \sum_{b'=1}^{b} \hat{p}^{\text{model}}_{b'}\right|$$
 
-#### 3.1.5. Tiêu chí lựa chọn mô hình
+#### 3.1.5. Phân tích phần dư cục bộ (Residual Analysis)
+
+Để đánh giá sai số của mô hình tại từng dải khoảng cách cụ thể, chúng tôi tính toán **Phần dư chuẩn hóa (Standardized Residuals)**:
+$$res_b = \frac{h_b - N \cdot \hat{p}_b}{\sqrt{N \cdot \hat{p}_b (1 - \hat{p}_b)}}$$
+Trong đó $h_b$ là số chuyến đi thực tế trong bin $b$, $N$ là tổng số mẫu, và $\hat{p}_b$ là giá trị xác suất dự báo từ mô hình. Một mô hình tốt sẽ có phần dư phân bố ngẫu nhiên quanh trục 0, không có xu hướng (trend) hệ thống theo khoảng cách.
+
+#### 3.1.6. Kiểm định Thống kê Sự khác biệt (Model Comparison Tests)
+
+Để xác định xem sự khác biệt giữa các mô hình có ý nghĩa thống kê hay không, chúng tôi áp dụng:
+1.  **Likelihood Ratio Test (LRT):** Dùng cho các mô hình lồng nhau (Nested models). Ví dụ: kiểm tra xem việc thêm tham số shape ($\alpha$) trong Gamma có cải thiện đáng kể so với Exponential ($H_0: \alpha = 1$).
+2.  **Vuong’s Test:** Dùng để so sánh các mô hình không lồng nhau (ví dụ: Lognormal vs Gamma). Chỉ số $V > 1.96$ cho thấy mô hình A tốt hơn, $V < -1.96$ cho thấy mô hình B tốt hơn (mức ý nghĩa 5%).
+3.  **$\Delta$BIC (BIC Difference):** Theo quy tắc của Kass & Raftery [6], $\Delta$BIC > 2 là bằng chứng nhẹ, > 6 là bằng chứng mạnh và **> 10 là bằng chứng áp đảo (Very strong evidence)** cho mô hình có BIC thấp hơn.
+
+#### 3.1.7. Spatial Cross-Validation (Kiểm tra chéo không gian)
+
+Để loại bỏ hoàn toàn ảnh hưởng của cỡ mẫu ($N$) trong tiêu chuẩn BIC và đánh giá tính bền vững (robustness) của các mô hình, chúng tôi thực hiện **Spatial Cross-Validation**:
+- **Phân tách Block:** Sử dụng 40 groups địa lý (xây dựng tại mục 3.2) làm các đơn vị block để đảm bảo tính độc lập về không gian.
+- **Train-Test Split:** Thực hiện 20 lượt ShuffleSplit chọn 30 groups (75%) để fit tham số và 10 groups còn lại (25%) để kiểm tra.
+- **Chỉ số đánh giá:** Tính toán **Normalized Log-loss** (Negative Log-Likelihood trên tập test chia cho tổng chuyến đi). Đây là thước đo thuần túy về khả năng dự báo xác suất của mô hình trên dữ liệu chưa từng quan sát.
+
+#### 3.1.8. Minimum Description Length (MDL) & Effective Complexity
+
+Để đảm bảo sự công bằng giữa các mô hình có cấu trúc hàm khác nhau (ví dụ: Lognormal 3 tham số vs TLF 4 tham số) và giải quyết hạn chế của BIC khi cỡ mẫu ($N$) quá lớn, chúng tôi áp dụng nguyên lý **Minimum Description Length (MDL)**. MDL không chỉ phạt số lượng tham số $k$ mà còn xem xét "độ phức tạp hiệu dụng" (Effective Complexity) của không gian tham số:
+$$MDL(\mathcal{M}) \approx -\ln \mathcal{L}(\hat{\theta}) + \frac{k}{2} \ln \mathcal{B}$$
+Trong đó $\mathcal{B}$ là số lượng bins của histogram khoảng cách (thước đo thông tin thực tế). MDL ưu tiên các mô hình nén dữ liệu tốt nhất với cấu trúc hàm đơn giản và ổn định nhất.
+
+#### 3.1.9. Tiêu chí lựa chọn mô hình
+
 
 Với mỗi đơn vị không gian, mô hình tốt nhất được xác định theo từng tiêu chí:
 - **AIC/BIC**: mô hình có giá trị **thấp nhất** được chọn.
@@ -256,30 +283,78 @@ Consensus: **Gamma (20 vùng) > Lognormal (10 vùng)**.
 *Hình 5. Thống kê mức độ ưu thế của các mô hình tại quy mô vĩ mô (5 Districts).*
 
 
-Tại cấp độ District, thực tế là một **cuộc tranh giành giữa các mô hình hệ thống và quá độ**:
-- **Gamma và Truncated Lévy Flight (TLF)**: Cùng dẫn đầu BIC tại **40% số quận** (2/5 mỗi bên). Điều này cho thấy sự cân bằng giữa mô hình gộp (Gamma) và mô hình hệ thống (TLF) ở quy mô macro.
-- **Shifted Power-Law**: Mặc dù không thắng BIC, nhưng **dẫn đầu KS-stat tại 40% số quận**, khẳng định vị thế trong việc mô tả hình học phần đuôi dữ liệu chính xác hơn.
-- **Lognormal**: Chính thức có **0% BIC**, xác nhận sự thất bại hoàn toàn về mặt thông tin thống kê ở cấp vĩ mô khi thói quen cá nhân bị lấn át bởi cấu trúc đô thị.
+Tại cấp độ District, kết quả thực nghiệm cho thấy một cuộc cạnh tranh quyết liệt giữa các mô hình (Table 3b).
+
+**Table 3b.** Ưu thế mô hình tại Quy mô Vĩ mô (5 Districts).
+
+| Model              | BIC Winner (%) | KS Winner (%) | AD Winner (%) | Statistical Test (LRT/Vuong) |
+| :---               | :---:          | :---:         | :---:         | :---                         |
+| **Gamma**          | **40.0%**      | 0.0%          | 20.0%         | Pref. over LN (V < -20)      |
+| **Trun. Lévy Flight**| **40.0%**    | 20.0%         | 0.0%          | Pref. over SPL (p < 0.001)   |
+| **Lognormal**      | 0.0%           | 20.0%         | **80.0%**     | -                            |
+| **Shifted Power-Law**| 0.0%         | **40.0%**     | 0.0%          | -                            |
+
+**Nhận xét:** Tại quy mô District, chúng tôi ghi nhận một hiện tượng thú vị: Trong khi Gamma và TLF chiếm ưu thế về BIC (thông tin tổng thể), thì **Lognormal lại thắng tuyệt đối về AD-stat (80%)**. Điều này cho thấy LN mô tả tốt sự hội tụ của dữ liệu tại các cực (tail-body interface) của từng quận, nhưng lại thất bại trong việc cân bằng sai số trên toàn bộ dải khoảng cách khi so với các mô hình hệ thống.
+
+**Nhận xét từ các kiểm định ý nghĩa (Table 8):**
+- **Sự trỗi dậy của Gamma:** Kiểm định Vuong khẳng định Gamma tốt hơn Lognormal một cách áp đảo ($V < -22.0$). Đồng thời, chỉ số MDL (đề cập tại mục 3) cho thấy Gamma là mô hình tối ưu hơn TLF (60% ưu thế) khi xét tới độ phức tạp hiệu dụng.
+- **Vị thế của TLF và SPL:** Mặc dù SPL dẫn đầu về KS-stat (40%), nhưng LRT khẳng định việc thêm tham số cắt $\kappa$ (TLF) mang lại cải thiện LLH có ý nghĩa thống kê cực lớn ($p < 0.0001$). Điều này minh chứng cho ảnh hưởng của biên giới đảo Singapore lên các chuyến đi dài.
+
+**Table 8.** Kết quả kiểm định thống kê sự khác biệt (District Scale).
+
+| Comparison (A vs B) | Test Type | Result (p-val / V-stat) | Conclusion |
+|---------------------|-----------|-------------------------|------------|
+| **Gamma vs Exp**    | LRT       | $p < 0.0001$            | Gamma is significantly better |
+| **TLF vs SPL**      | LRT       | $p < 0.0001$            | TLF is significantly better   |
+| **Gamma vs LN**     | Vuong     | $V < -22.0$             | Gamma is significantly better |
+| **TLF vs LN**       | Vuong     | $V < -31.0$             | TLF is significantly better   |
+
 
 ![Nghịch lý R2 vs BIC](bic_logic_illustration.png)
 *Hình 6. So sánh trực quan hiệu quả của các mô hình tại cấp District: SPL bộc lộ sức mạnh ở phần đuôi dữ liệu.*
 
+### 4.6. Kiểm chứng độ bền vững với Spatial Cross-Validation
+
+Kết quả kiểm tra chéo trên 40 block địa lý (Table 6) cung cấp một cái nhìn khách quan về khả năng tổng quát hóa của các mô hình mà không phụ thuộc vào các hình phạt tham số của AIC/BIC.
+
+**Table 6.** Tỷ lệ thắng (Win Rate %) dựa trên Out-of-Sample Log-loss (Subzone level).
+
+| Model              | Win Rate (%) | Predictive Preference |
+|--------------------|:------------:|:----------------------|
+| **Shifted Power-Law** | **38.4%**    | Tail Generalization   |
+| **Lognormal**      | **35.1%**    | Body/Habit Capture    |
+| Gamma              | 12.1%        | Aggregation Proxy     |
+| Exponential        | 7.3%         | -                     |
+| Trun. Lévy Flight  | 7.2%         | -                     |
+
+**Nhận xét:** Khi sử dụng Log-loss làm thước đo, **Lognormal và SPL chiếm ưu thế áp đảo (tổng cộng ~74%)** tại quy mô Micro. Mặc dù SPL có lợi thế nhẹ về khả năng dự báo các chuyến đi hiếm gặp (đuôi dài) trên dữ liệu mới, Lognormal vẫn giữ vị thế là mô hình phản ánh thói quen di chuyển lặp đi lặp lại.
+
+### 4.7. Phân tích phần dư cục bộ và Sai số hình thái
+
+Mặc dù các chỉ số tích lũy (KS, AD) cung cấp cái nhìn tổng thể, việc phân tích phần dư chuẩn hóa (Figure 10) bộc lộ các sai số hệ thống của mô hình theo từng dải khoảng cách.
+
+![Phân tích phần dư cục bộ](residual_analysis_plot.png)
+*Hình 10. Phân tích phần dư chuẩn hóa (Standardized Residuals) của các mô hình tại quy mô Global.*
+
+
+**Các quan sát chính từ Figure 10:**
+- **Sự hụt hẫng cự ly ngắn (0-5 km):** Tất cả các mô hình đều gặp khó khăn trong việc khớp các chuyến đi cực ngắn, phản ánh tính rời rạc của dữ liệu lưới (grid) và sự phức tạp của hành vi đi bộ/kết nối vi mô.
+- **Sự đánh giá cao quá mức ở phần đuôi (>25 km):** Cả Lognormal và SPL đều cho thấy phần nợ âm (negative residuals) lớn ở cự ly xa. Điều này có nghĩa là các mô hình này dự báo số lượng chuyến đi xa cao hơn thực tế, một hệ quả của việc không tính đến giới hạn địa đạo (boundary effect) của Singapore.
+- **Ưu thế của Gamma:** Mô hình Gamma (màu xanh lá) duy trì đường phần dư tiệm cận 0 tốt hơn SPL ở vùng đuôi, củng cố luận điểm của chúng tôi về sự gộp hành vi tạo ra các đuôi có tính chất hàm mũ (exponentially truncated) thay vì lũy thừa thuần túy.
 
 ### 4.4. Khảo sát tại Cấp Toàn thành phố - Global (City-wide)
 
 Ở cấp độ gộp cao nhất (toàn bộ Singapore), toàn bộ các đặc tính hành vi cá nhân và hạ tầng cụ thể bị triệt tiêu, chỉ còn lại quy luật "ma sát khoảng cách" cơ bản nhất (distance decay).
 
-**Table 4.** Goodness-of-fit comparison at the global scale (Singapore-wide, n = 1).
-
 **Table 4.** Hiệu quả mô hình tại quy mô toàn thành phố (Global scale, n = 1).
 
-| Model | $k$ | LLH | AIC | BIC | KS-stat | AD-stat |
+| Model | $k$ | LLH | BIC | $\Delta$BIC | KS-stat | AD-stat |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lognormal** | 3 | **-19.41M**| **38.82M** | **38.82M** | 0.1274 | 39.72M |
-| **Exponential** | 2 | -19.53M | 39.06M | 39.06M | 0.1134 | 10.92M |
-| **Gamma** | 3 | -19.47M | 38.95M | 38.95M | 0.1231 | **5.25M** |
-| **Shifted Power-Law** | 3 | -19.59M | 39.19M | 39.19M | **0.1096** | 27.83M |
-| **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | 39.06M | 0.1133 | 11.02M |
+| **Lognormal** | 3 | **-19.41M**| **38.82M** | 0.0 | 0.1274 | 39.72M |
+| **Gamma** | 3 | -19.47M | 38.95M | +0.13M | 0.1231 | **5.25M** |
+| **Shifted Power-Law** | 3 | -19.59M | 39.19M | +0.37M | **0.1096** | 27.83M |
+| **Trun. Lévy Flight** | 4 | -19.53M | 39.06M | +0.24M | 0.1133 | 11.02M |
+| **Exponential** | 2 | -19.53M | 39.06M | +0.24M | 0.1134 | 10.92M |
 
 
 
@@ -405,7 +480,7 @@ Nghiên cứu làm rõ rằng xác suất di chuyển là kết quả của sự
 1.  **Cực Thói quen (Habit Pole):** Áp đảo ở quy mô Subzone. Ở đây, con người di chuyển dựa trên các lộ trình lặp đi lặp lại và sự thuận tiện. Phân phối Lognormal thắng tuyệt đối vì nó mô tả tốt vùng "plateau" (không di chuyển cực ngắn) và sự suy giảm ổn định của thói quen.
 2.  **Cực Hấp dẫn (Gravity Pole):** Áp đảo ở quy mô District/Global. Ở quy mô này, thói quen cá nhân bị trung hòa, chỉ còn lại sự ràng buộc của cấu trúc đô thị và các trung tâm kinh tế. Các mô hình Power-Law và TLF trỗi dậy để mô tả bản chất "vô quy mô" của hệ thống hạ tầng.
 
-Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL** chính là lộ trình toán học của quá trình chuyển pha từ hành vi vi mô sang cấu trúc vĩ mô.
+Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL** chính là lộ trình toán học của quá trình chuyển pha từ hành vi vi mô sang cấu trúc vĩ mô. Việc sử dụng **MDL (Minimum Description Length)** đã củng cố vai trò của Gamma tại quy mô trung gian và vĩ mô như là mô hình có "độ phức tạp hiệu dụng" (Effective Complexity) thấp nhất để giải thích sự gộp hành vi.
 
 
 
@@ -415,7 +490,7 @@ Sự chuyển dịch từ **Lognormal $\rightarrow$ Gamma $\rightarrow$ SPL** ch
 
 Nghiên cứu này đã thành công trong việc giải mã sự mâu thuẫn giữa các quy luật di chuyển tại Singapore thông qua lăng kính quy mô không gian và phương pháp ước lượng MLE, với các kết luận chính sau:
 
-1. **Sự chuyển dịch rõ rệt theo quy mô.** Mỗi nấc thang không gian là một sự chuyển dịch quyền lực: Ở quy mô vi mô, **Lognormal thống trị** (60% BIC). Ở quy mô trung gian, **Gamma vươn lên** (59% BIC). Ở quy mô District, **Gamma và TLF hòa nhau** (40% mỗi bên). Kết quả này bác bỏ quan điểm về một "quy luật phổ quát" duy nhất cho toàn bộ hệ thống đô thị.
+1. **Sự chuyển dịch rõ rệt theo quy mô.** Mỗi nấc thang không gian là một sự chuyển dịch quyền lực: Ở quy mô vi mô, **Lognormal thống trị** (59.7% BIC). Ở quy mô trung gian, **Gamma vươn lên** (58.8% BIC). Ở quy mô District, **Gamma và TLF hòa nhau** (40% mỗi bên). Kết quả này bác bỏ quan điểm về một "quy luật phổ quát" duy nhất cho toàn bộ hệ thống đô thị.
 
 2. **Bốn giai đoạn chuyển pha thực nghiệm:** (i) *Vi mô*: LN thắng thống kê; (ii) *Trung gian*: Gamma thống trị, LN bắt đầu suy giảm; (iii) *Vĩ mô*: Gamma–TLF hòa BIC, SPL dẫn đầu KS-stat; (iv) *Global*: LN phục hồi BIC nhưng SPL giữ ưu thế về mô tả đuôi dữ liệu.
 
