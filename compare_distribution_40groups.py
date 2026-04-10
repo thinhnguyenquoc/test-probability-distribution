@@ -112,13 +112,13 @@ for group_id, group_data in df.groupby('group_id'):
         
     best_model = min(group_res.keys(), key=lambda m: group_res[m]['BIC'])
     
-    for name, metrics in group_res.items():
         results.append({
             'group_id': group_id,
             'Total_Trips': total_trips,
             'Model': name,
             'R2': metrics['R2'],
             'KS_Stat': metrics['KS_Stat'],
+            'Log_Likelihood': metrics['Log_Likelihood'],
             'AIC': metrics['AIC'],
             'BIC': metrics['BIC'],
             'Is_Best_BIC': (name == best_model)

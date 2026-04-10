@@ -45,8 +45,8 @@ def run_global_analysis():
         'Truncated Levy Flight': (tlf_dist, [1, 1, 2, 10], 4, ([0, 0.1, 0.1, 0.1], [np.inf, 50, 20, 100]))
     }
     
-    print(f"| Model | R2 | BIC | KS-stat |")
-    print(f"|---|---|---|---|")
+    print(f"| Model | R2 | Log-Likelihood | AIC | BIC | KS-stat |")
+    print(f"|---|---|---|---|---|---|")
     for name, (func, p0, k, bounds) in models.items():
         try:
             popt, _ = curve_fit(func, x, y, p0=p0, bounds=bounds, maxfev=50000)
@@ -55,12 +55,13 @@ def run_global_analysis():
             # Log likelihood for BIC
             y_fit_norm = y_fit / np.sum(y_fit)
             ll = np.sum((y * total_trips) * np.log(np.clip(y_fit_norm, 1e-300, 1)))
+            aic = 2 * k - 2 * ll
             bic = k * np.log(total_trips) - 2 * ll
             # KS
             y_cdf = np.cumsum(y / np.sum(y))
             fit_cdf = np.cumsum(y_fit_norm)
             ks = np.max(np.abs(y_cdf - fit_cdf))
-            print(f"| {name} | {r2:.4f} | {bic:,.0f} | {ks:.4f} |")
+            print(f"| {name} | {r2:.4f} | {ll:,.0f} | {aic:,.0f} | {bic:,.0f} | {ks:.4f} |")
         except Exception as e:
             print(f"| {name} | Error: {e} | - | - |")
 
