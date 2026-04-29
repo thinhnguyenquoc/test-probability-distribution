@@ -24,7 +24,7 @@
 * Mô hình có thể sinh tốt khi áp dụng cho trường hợp zero-shot? Áp dụng mô hình tìm được như thế nào vào Hồ Chí Minh.
 
 ### 5. Cách thức thực hiện chi tiết
-* **Đề xuất mô hình sinh OD mới:** Dựa vào phân bổ xác suất di chuyển nhằm đảm bảo tính ổn định của mô hình khi giảm dữ liệu quan sát. Kiểm tra độ chính xác với các mô hình đã có.
+* **Đề xuất mô hình sinh OD mới:** Dựa vào phân bổ xác suất di chuyển nhằm đảm bảo tính ổn định của mô hình khi giảm dữ liệu quan sát (chỉ dùng 10% dữ liệu). Kiểm tra độ chính xác với các mô hình đã có.
 * **Nghiên cứu mô hình Variational Autoencoder (VAE):** Tận dụng khả năng học đặc điểm ngữ cảnh giữa các thành phố thông qua dữ liệu mở để kiểm tra xem dữ liệu mở đóng vai trò như thế nào trong việc cung cấp thông tin dự báo. Dữ liệu mở sẽ được thêm bớt các thuộc tính để từ đó xác định các thuộc tính có ảnh hưởng lớn.
 * **Áp dụng mô hình đề xuất:** Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook và mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất dữ liệu cho Hồ Chí Minh. So sánh kết quả hai mô hình để đưa ra dữ liệu dự báo tốt nhất cho thành phố Hồ Chí Minh.
 *  **Thu thập dữ liệu luồng ở Hồ Chí Minh:** làm khảo sát cho 200 ứng viên để xem trong một tuần họ di chuyển đến những nơi nào trong thành phố. Từ đó có dữ liệu để kiểm tra mô hình đề xuất. 
