@@ -26,4 +26,4 @@
 ### 5. Cách thức thực hiện chi tiết
 * **Đề xuất mô hình sinh OD mới:** Dựa vào phân bổ xác suất di chuyển nhằm đảm bảo tính ổn định của mô hình khi giảm dữ liệu quan sát. Kiểm tra độ chính xác với các mô hình đã có.
 * **Nghiên cứu mô hình diffusion:** Tận dụng khả năng học đặc điểm ngữ cảnh giữa các thành phố thông qua dữ liệu mở để kiểm tra xem dữ liệu mở đóng vai trò như thế nào trong việc cung cấp thông tin dự báo. Dữ liệu mở sẽ được thêm bớt các thuộc tính để từ đó xác định các thuộc tính có ảnh hưởng lớn.
-* **Áp dụng mô hình đề xuất:** Dựa theo dữ liệu Facebook và mô hình diffusion học trên các thành phố như Sgp, Seoul, US để đề xuất dữ liệu cho Hồ Chí Minh.
+* **Áp dụng mô hình đề xuất:** Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook và mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất dữ liệu cho Hồ Chí Minh. So sánh kết quả hai mô hình để đưa ra dữ liệu dự báo tốt nhất cho thành phố Hồ Chí Minh. 
