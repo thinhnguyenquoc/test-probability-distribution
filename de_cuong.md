@@ -26,5 +26,9 @@
 ### 5. Cách thức thực hiện chi tiết
 * **Đề xuất mô hình sinh OD mới:** Dựa vào phân bổ xác suất di chuyển nhằm đảm bảo tính ổn định của mô hình khi giảm dữ liệu quan sát (chỉ dùng 10% dữ liệu). Kiểm tra độ chính xác với các mô hình đã có.
 * **Nghiên cứu mô hình Variational Autoencoder (VAE):** Tận dụng khả năng học đặc điểm ngữ cảnh giữa các thành phố thông qua dữ liệu mở để kiểm tra xem dữ liệu mở đóng vai trò như thế nào trong việc cung cấp thông tin dự báo. Dữ liệu mở sẽ được thêm bớt các thuộc tính để từ đó xác định các thuộc tính có ảnh hưởng lớn.
-* **Áp dụng mô hình đề xuất:** Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook và mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất dữ liệu cho Hồ Chí Minh. So sánh kết quả hai mô hình để đưa ra dữ liệu dự báo tốt nhất cho thành phố Hồ Chí Minh.
-*  **Thu thập dữ liệu luồng ở Hồ Chí Minh:** làm khảo sát cho 200 ứng viên thuộc một đến hai quận của thành phố để xem trong một tuần họ di chuyển đến những nơi nào trong thành phố. Từ đó có dữ liệu để kiểm tra mô hình đề xuất. 
+* **Áp dụng mô hình đề xuất:**
+  - Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook để xác định hàm phân bổ
+  - Dùng mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất tổng số luồng đi ra từ một subzone dựa trên quy mô dân số và các đặc trưng dữ liệu mở của các vùng liền kề.
+  - Sử dụng mô hình đề xuất để ước lượng các luồng di chuyển trong thành phố Hồ Chí Minh.
+* Dùng một khảo sát nhỏ ở thành phố Hồ Chí Minh: khảo sát 200 người trong một đến hai quận để xem họ đi đâu trong tuần. Từ đó làm dữ liệu ground truth để kiểm tra tính đúng đắn của mô hình.
+
