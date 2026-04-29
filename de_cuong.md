@@ -20,15 +20,17 @@
 
 ### 4. Câu hỏi nghiên cứu
 * Làm sao thiết kế mô hình sinh OD có thể duy trì độ chính xác khi dữ liệu quan sát bị giảm đáng kể?
-* Các loại thông tin ngữ cảnh (POI, population, road network) đóng vai trò thế nào khi dữ liệu OD bị thiếu?
+* Thông tin về xác suất di chuyển của Facebook chưa chính xác với dữ liệu ground truth, liệu sai lệch này có tính hệ thống, làm sao hiệu chỉnh cho Hồ Chí Minh thông qua dữ liệu của các thành phố khác: SGP, Seoul, thành phố US?
 * Mô hình có thể sinh tốt khi áp dụng cho trường hợp zero-shot? Áp dụng mô hình tìm được như thế nào vào Hồ Chí Minh.
 
 ### 5. Cách thức thực hiện chi tiết
 * **Đề xuất mô hình sinh OD mới:** Dựa vào phân bổ xác suất di chuyển nhằm đảm bảo tính ổn định của mô hình khi giảm dữ liệu quan sát (chỉ dùng 10% dữ liệu). Kiểm tra độ chính xác với các mô hình đã có.
-* **Nghiên cứu mô hình Variational Autoencoder (VAE):** Tận dụng khả năng học đặc điểm ngữ cảnh giữa các thành phố thông qua dữ liệu mở để kiểm tra xem dữ liệu mở đóng vai trò như thế nào trong việc cung cấp thông tin dự báo. Dữ liệu mở sẽ được thêm bớt các thuộc tính để từ đó xác định các thuộc tính có ảnh hưởng lớn.
+* **Nghiên cứu Domain Adaptation / Transfer Learning:** Dùng dữ liệu mỡ để học cách điều chỉnh từ phân bố xác suất của Facebook về xác suất thật. Phương pháp sử dụng: Meta-regression để học từ các thành phố khác và chuyển giao về cho Hồ Chí Minh.
+* **Nghiên cứu các ước lượng tổng số lường đi ra từ một vùng** Dùng mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất tổng số luồng đi ra từ một subzone dựa trên quy mô dân số và các đặc trưng dữ liệu mở của các vùng liền kề.
 * **Áp dụng mô hình đề xuất:**
-  - Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook để xác định hàm phân bổ
-  - Dùng mô hình Variational Autoencoder (VAE) học trên các thành phố như Sgp, US, rồi test trên Seoul để đề xuất tổng số luồng đi ra từ một subzone dựa trên quy mô dân số và các đặc trưng dữ liệu mở của các vùng liền kề.
+  - Dựa theo dữ liệu phân phối xác suất di chuyển của Facebook đã hiệu chỉnh ở bước trên để bổ sung thông số cho hàm phân bổ cho mô hình đã đề xuất.
+  - Tổng số luồng ra ước lượng 
   - Sử dụng mô hình đề xuất để ước lượng các luồng di chuyển trong thành phố Hồ Chí Minh.
-* Dùng một khảo sát nhỏ ở thành phố Hồ Chí Minh: khảo sát 200 người trong một đến hai quận để xem họ đi đâu trong tuần. Từ đó làm dữ liệu ground truth để kiểm tra tính đúng đắn của mô hình.
+    
+* Bổ sung một khảo sát nhỏ ở thành phố Hồ Chí Minh: khảo sát 200 người trong một đến hai quận để xem họ đi đâu trong tuần. Từ đó làm dữ liệu ground truth để kiểm tra tính đúng đắn của mô hình, hoặc tìm kiếm nguồn thay thế từ sở giao thông thành phố.
 
